@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Drawing;
+using System.Drawing.Imaging;
 using Nyerguds.Ini;
 
 namespace RAFullMapPreviewGenerator
@@ -28,6 +29,7 @@ namespace RAFullMapPreviewGenerator
         List<InfantryInfo> Infantries = new List<InfantryInfo>();
         List<SmudgeInfo> Smudges = new List<SmudgeInfo>();
         List<StructureInfo> Structures = new List<StructureInfo>();
+        List<BaseStructureInfo> BaseStructures = new List<BaseStructureInfo>();
         List<CellTriggerInfo> CellsTriggers = new List<CellTriggerInfo>();
         Dictionary<string, Palette> ColorRemaps = new Dictionary<string, Palette>();
         List<BibInfo> Bibs = new List<BibInfo>();
@@ -60,6 +62,7 @@ namespace RAFullMapPreviewGenerator
             Parse_Infantry();
             Parse_Ships();
             Parse_Structures();
+            Parse_Base();
 
             for (int x = 0; x < 128; x++)
             {
@@ -95,6 +98,7 @@ namespace RAFullMapPreviewGenerator
             Draw_Smudges(g);
             Draw_Bibs(g);
             Draw_Structures(g);
+            Draw_Base_Structures(g);
             Draw_Units(g);
             Draw_Infantries(g);
             Draw_Ships(g);
@@ -411,6 +415,49 @@ namespace RAFullMapPreviewGenerator
             return Rounded;
         }
 
+        void Draw_Base_Structures(Graphics g)
+        {
+            foreach (BaseStructureInfo bs in BaseStructures)
+            {
+                Draw_Base_Structure(bs, g);
+            }
+        }
+
+        void Draw_Base_Structure(BaseStructureInfo bs, Graphics g)
+        {
+            string FileName = General_File_String_From_Name(bs.Name);
+
+            if (!File.Exists(FileName))
+            {
+                FileName = Theater_File_String_From_Name(bs.Name);
+            }
+
+            ShpReader BaseStructShp = ShpReader.Load(FileName);
+
+            Bitmap BaseStructBitmap = RenderUtils.RenderShp(BaseStructShp, /*Remap_For_House(s.Side, ColorScheme.Primary)*/ Pal,
+                0);
+
+            Draw_Image_With_Opacity(g, BaseStructBitmap, bs.X * CellSize, bs.Y * CellSize);
+
+            /* g.FillRectangle(new SolidBrush(Color.FromArgb(140, 255, 255, 255)),
+                bs.X * CellSize, bs.Y  * CellSize,
+                BaseStructBitmap.Width, BaseStructBitmap.Height); */
+        }
+
+        void Draw_Image_With_Opacity(Graphics g, Bitmap bitmap, int X, int Y)
+        {
+            ColorMatrix matrix = new ColorMatrix();
+
+            //opacity 0 = completely transparent, 1 = completely opaque
+            matrix.Matrix03 = 0.9f; matrix.Matrix13 = 0.01f; matrix.Matrix23 = 0.1f;
+            matrix.Matrix33 = 0.01f; matrix.Matrix43 = 0.01f;
+
+            ImageAttributes attributes = new ImageAttributes();
+            attributes.SetColorMatrix(matrix, ColorMatrixFlag.Default, ColorAdjustType.Default);
+
+            g.DrawImage(bitmap, new Rectangle(X, Y, bitmap.Width, bitmap.Height),
+                0, 0, bitmap.Width, bitmap.Height, GraphicsUnit.Pixel, attributes);
+        }
 
         void Draw_Structures(Graphics g)
         {
@@ -452,11 +499,11 @@ namespace RAFullMapPreviewGenerator
         {
             foreach (BibInfo bib in Bibs)
             {
-                Draw_Bib(g, bib.Name, bib.X, bib.Y);
+                Draw_Bib(g, bib.Name, bib.X, bib.Y, bib.IsBaseStructureBib);
             }
         }
 
-        void Draw_Bib(Graphics g, string Name, int X, int Y)
+        void Draw_Bib(Graphics g, string Name, int X, int Y, bool IsBaseStructureBib)
         {
             Name = Name.ToLower();
             ShpReader BibShp = ShpReader.Load(Theater_File_String_From_Name(Name));
@@ -475,9 +522,18 @@ namespace RAFullMapPreviewGenerator
             {
                 for (int x = 0; x < maxX; x++)
                 {
-                    Bitmap StructBitmap = RenderUtils.RenderShp(BibShp, Pal, Frame);
+                    Bitmap BibBitmap = RenderUtils.RenderShp(BibShp, Pal, Frame);
+                    int bibX = (X + x) * CellSize; int bibY = (Y + y) * CellSize;
 
-                    g.DrawImage(StructBitmap, (X + x) * CellSize, (Y + y) * CellSize, StructBitmap.Width, StructBitmap.Height);
+                    if (IsBaseStructureBib)
+                    {
+                        Draw_Image_With_Opacity(g, BibBitmap, bibX, bibY);
+
+                    }
+                    else
+                    {
+                        g.DrawImage(BibBitmap, bibX, bibY, BibBitmap.Width, BibBitmap.Height);
+                    }
 
                     Frame++;
                 }
@@ -497,7 +553,7 @@ namespace RAFullMapPreviewGenerator
             string Name = sm.Name.ToLower();
             if (Name == "bib1" || Name == "bib2" || Name == "bib3")
             {
-                Draw_Bib(g, Name, sm.X, sm.Y);
+                Draw_Bib(g, Name, sm.X, sm.Y, false);
             }
 
             ShpReader SmudgeShp = ShpReader.Load(Theater_File_String_From_Name(sm.Name));
@@ -617,6 +673,48 @@ namespace RAFullMapPreviewGenerator
             }
         }
 
+        void Parse_Base()
+        {
+            var SectionBase = MapINI.getSectionContent("Base");
+            if (SectionBase != null)
+            {
+                foreach (KeyValuePair<string, string> entry in SectionBase)
+                {
+                    // Make sure we only parse keys that are a number
+                    // To prevent crashing trying to parse "Player=" and "Count="
+                    int Dummy = -1;
+                    if (int.TryParse(entry.Key, out Dummy) == false) continue;
+
+                    string BaseStructureCommaString = entry.Value;
+
+                    string[] BaseStructureData = BaseStructureCommaString.Split(',');
+
+                    // 0=neutral,afld,256,6,0,none
+                    BaseStructureInfo bs = new BaseStructureInfo();
+                    bs.Name = BaseStructureData[0].ToLower();
+                    int CellIndex = int.Parse(BaseStructureData[1]);
+                    bs.Y = CellIndex / 128;
+                    bs.X = CellIndex % 128;
+
+                    BaseStructures.Add(bs);
+
+                    if (BuildingBibs.ContainsKey(bs.Name))
+                    {
+                        BuildingBibInfo bi = new BuildingBibInfo();
+                        BuildingBibs.TryGetValue(bs.Name, out bi);
+
+                        BibInfo bib = new BibInfo();
+                        bib.Name = bi.Name;
+                        bib.X = bs.X;
+                        bib.Y = bs.Y + bi.Yoffset;
+                        bib.IsBaseStructureBib = true;
+
+                        Bibs.Add(bib);
+                    }
+                }
+            }
+        }
+
         void Parse_Structures()
         {
             var SectionStructures = MapINI.getSectionContent("Structures");
@@ -670,6 +768,7 @@ namespace RAFullMapPreviewGenerator
                         bib.Name = bi.Name;
                         bib.X = s.X;
                         bib.Y = s.Y + bi.Yoffset;
+                        bib.IsBaseStructureBib = false;
 
                         Bibs.Add(bib);
                     }
@@ -1310,11 +1409,20 @@ namespace RAFullMapPreviewGenerator
         public int HP;
         public bool IsFake;
     }
+
+    struct BaseStructureInfo
+    {
+        public string Name;
+        public int X;
+        public int Y;
+    }
+
     struct BibInfo
     {
         public string Name;
         public int X;
         public int Y;
+        public bool IsBaseStructureBib;
     }
     struct SmudgeInfo
     {
