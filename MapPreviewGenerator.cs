@@ -201,7 +201,7 @@ namespace RAFullMapPreviewGenerator
                     }
                 }
 
-                Draw_Text(g, wp.Number.ToString(), new Font("Thaoma", 8), Brushes.GreenYellow,
+                Draw_Text(g, wp.Number.ToString(), new Font("Thaoma", 8), Brushes.Red,
                     (TemplateReader.TileSize * wp.X) + X_Adjust, (wp.Y * TemplateReader.TileSize) + 6);
                 Draw_Rectangle(g, wp.X, wp.Y);
             }
@@ -222,7 +222,7 @@ namespace RAFullMapPreviewGenerator
 
         void Draw_Rectangle(Graphics g, int x, int y)
         {
-            Pen p = new Pen(Brushes.GreenYellow, 0.1f);
+            Pen p = new Pen(Brushes.Red, 0.2f);
             g.DrawRectangle(p, x * TemplateReader.TileSize + 1, y * TemplateReader.TileSize + 1,
                 TemplateReader.TileSize -2, TemplateReader.TileSize - 2);
         }
