@@ -32,6 +32,7 @@ namespace RAFullMapPreviewGenerator
         List<BibInfo> Bibs = new List<BibInfo>();
         static Dictionary<string, BuildingBibInfo> BuildingBibs = new Dictionary<string, BuildingBibInfo>();
         static Dictionary<string, int> BuildingDamageFrames = new Dictionary<string, int>();
+        static Dictionary<string, string> FakeBuildings = new Dictionary<string, string>();
 
         static Bitmap[] SpawnLocationBitmaps = new Bitmap[8];
         int MapWidth = -1, MapHeight = -1, MapY = -1, MapX = -1;
@@ -190,10 +191,10 @@ namespace RAFullMapPreviewGenerator
 
         }
 
-                void Draw_Text(Graphics g, string text, Font font, Brush brush, int x, int y)
+        void Draw_Text(Graphics g, string text, Font font, Brush brush, int x, int y)
         {
             RectangleF rectf = new RectangleF(x, y, 
-                TemplateReader.TileSize, TemplateReader.TileSize);
+                TemplateReader.TileSize * 2, TemplateReader.TileSize * 2);
 
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
             g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
@@ -279,6 +280,7 @@ namespace RAFullMapPreviewGenerator
             } */
         }
 
+
         void Draw_Structures(Graphics g)
         {
             foreach (StructureInfo s in Structures)
@@ -305,23 +307,32 @@ namespace RAFullMapPreviewGenerator
                 Frame);
 
             g.DrawImage(StructBitmap, s.X * CellSize, s.Y * CellSize, StructBitmap.Width, StructBitmap.Height);
+
+            if (s.IsFake)
+            {
+                int CenterX = (s.X * CellSize) + (StructBitmap.Width / 2);
+                int CenterY = (s.Y * CellSize) + (StructBitmap.Height / 2);
+
+                Draw_Text(g, "FAKE", new Font("Thaoma", 10), Brushes.White, CenterX - 20, CenterY - 8);
+            }
         }
 
         void Draw_Bibs(Graphics g)
         {
             foreach (BibInfo bib in Bibs)
             {
-                Draw_Bib(bib, g);
+                Draw_Bib(g, bib.Name, bib.X, bib.Y);
             }
         }
 
-        void Draw_Bib(BibInfo bib, Graphics g)
+        void Draw_Bib(Graphics g, string Name, int X, int Y)
         {
-            ShpReader BibShp = ShpReader.Load(Theater_File_String_From_Name(bib.Name));
+            Name = Name.ToLower();
+            ShpReader BibShp = ShpReader.Load(Theater_File_String_From_Name(Name));
             int Frame = 0;
 
             int maxY = -1; int maxX = -1;
-            switch (bib.Name.ToLower())
+            switch (Name)
             {
                 case "bib1": maxY = 2; maxX = 4; break;
                 case "bib2": maxY = 2; maxX = 3; break;
@@ -335,7 +346,7 @@ namespace RAFullMapPreviewGenerator
                 {
                     Bitmap StructBitmap = RenderUtils.RenderShp(BibShp, Pal, Frame);
 
-                    g.DrawImage(StructBitmap, (bib.X + x) * CellSize, (bib.Y + y) * CellSize, StructBitmap.Width, StructBitmap.Height);
+                    g.DrawImage(StructBitmap, (X + x) * CellSize, (Y + y) * CellSize, StructBitmap.Width, StructBitmap.Height);
 
                     Frame++;
                 }
@@ -352,9 +363,15 @@ namespace RAFullMapPreviewGenerator
 
         void Draw_Smudge(SmudgeInfo sm, Graphics g)
         {
-            TemplateReader SmudgeTemp = TemplateReader.Load(General_File_String_From_Name(sm.Name));
+            string Name = sm.Name.ToLower();
+            if (Name == "bib1" || Name == "bib2" || Name == "bib3")
+            {
+                Draw_Bib(g, Name, sm.X, sm.Y);
+            }
 
-            Bitmap StructBitmap = RenderUtils.RenderTemplate(SmudgeTemp, Pal, sm.State);
+            ShpReader SmudgeShp = ShpReader.Load(Theater_File_String_From_Name(sm.Name));
+
+            Bitmap StructBitmap = RenderUtils.RenderShp(SmudgeShp, Pal, sm.State);
 
             g.DrawImage(StructBitmap, sm.X * CellSize, sm.Y * CellSize, StructBitmap.Width, StructBitmap.Height);
         }
@@ -462,9 +479,17 @@ namespace RAFullMapPreviewGenerator
                     s.Y = CellIndex / 128;
                     s.X = CellIndex % 128;
 
+                    if (FakeBuildings.ContainsKey(s.Name))
+                    {
+                        string FakeName = null;
+                        FakeBuildings.TryGetValue(s.Name, out FakeName);
+                        s.Name = FakeName;
+                        s.IsFake = true;
+                    }
+
                     Structures.Add(s);
 
-                    if (s.Name.ToLower() == "weap")
+                    if (s.Name == "weap")
                     {
                         StructureInfo s2 = new StructureInfo();
                         s2.Name = "weap2";
@@ -473,6 +498,7 @@ namespace RAFullMapPreviewGenerator
                         s2.HP = s.HP;
                         s2.Y = s.Y;
                         s2.X = s.X;
+                        s2.IsFake = s.IsFake; // HACK
 
                         Structures.Add(s2);
                     }
@@ -557,7 +583,7 @@ namespace RAFullMapPreviewGenerator
 
         void Parse_Smudges()
         {
-            var SectionSmudges = MapINI.getSectionContent("Smudges");
+            var SectionSmudges = MapINI.getSectionContent("Smudge");
             if (SectionSmudges != null)
             {
                 foreach (KeyValuePair<string, string> entry in SectionSmudges)
@@ -944,6 +970,7 @@ namespace RAFullMapPreviewGenerator
 
             Load_Building_Damage_Frames();
             Load_Building_Bibs();
+            Load_Fake_Buildings();
 
             TiberiumStages.Add("ti1", 0);
             TiberiumStages.Add("ti2", 1);
@@ -959,26 +986,33 @@ namespace RAFullMapPreviewGenerator
             TiberiumStages.Add("ti12", 11);
         }
 
+        static void Load_Fake_Buildings()
+        {
+            FakeBuildings.Add("weaf", "weap");
+            FakeBuildings.Add("facf", "fact");
+            FakeBuildings.Add("domf", "dome");
+            FakeBuildings.Add("syrf", "syrd");
+            FakeBuildings.Add("spef", "spen");
+        }
+
         static void Load_Building_Bibs()
         {
-            BuildingBibs.Add("afld", new BuildingBibInfo("bib1", 1));
-
+            BuildingBibs.Add("afld", new BuildingBibInfo("bib2", 1));
             BuildingBibs.Add("bio", new BuildingBibInfo("bib3", 1));
-            BuildingBibs.Add("eye", new BuildingBibInfo("bib3", 1));
-            BuildingBibs.Add("fact", new BuildingBibInfo("bib2", 1));
-            BuildingBibs.Add("fix", new BuildingBibInfo("bib2", 2));
-            BuildingBibs.Add("hand", new BuildingBibInfo("bib3", 2));
+            BuildingBibs.Add("atek", new BuildingBibInfo("bib3", 1));
+            BuildingBibs.Add("fcom", new BuildingBibInfo("bib3", 1));
+            BuildingBibs.Add("stek", new BuildingBibInfo("bib2", 1));
+            BuildingBibs.Add("dome", new BuildingBibInfo("bib3", 1));
+            BuildingBibs.Add("barr", new BuildingBibInfo("bib3", 1));
+            BuildingBibs.Add("tent", new BuildingBibInfo("bib3", 1));
+            BuildingBibs.Add("fact", new BuildingBibInfo("bib2", 2));
             BuildingBibs.Add("hosp", new BuildingBibInfo("bib3", 1));
             BuildingBibs.Add("hpad", new BuildingBibInfo("bib3", 1));
-            BuildingBibs.Add("hq", new BuildingBibInfo("bib3", 1));
             BuildingBibs.Add("miss", new BuildingBibInfo("bib2", 1));
-            BuildingBibs.Add("nuke", new BuildingBibInfo("bib3", 1));
-            BuildingBibs.Add("nuk2", new BuildingBibInfo("bib3", 1));
+            BuildingBibs.Add("powr", new BuildingBibInfo("bib3", 1));
+            BuildingBibs.Add("apwr", new BuildingBibInfo("bib2", 2));
             BuildingBibs.Add("proc", new BuildingBibInfo("bib2", 2));
-            BuildingBibs.Add("pyle", new BuildingBibInfo("bib3", 1));
-            BuildingBibs.Add("silo", new BuildingBibInfo("bib3", 0));
-            BuildingBibs.Add("weap", new BuildingBibInfo("bib2", 2));
-            BuildingBibs.Add("tmpl", new BuildingBibInfo("bib2", 2));
+            BuildingBibs.Add("weap", new BuildingBibInfo("bib2", 1));
 
         }
 
@@ -1077,6 +1111,7 @@ namespace RAFullMapPreviewGenerator
         public int X;
         public int Y;
         public int HP;
+        public bool IsFake;
     }
     struct BibInfo
     {

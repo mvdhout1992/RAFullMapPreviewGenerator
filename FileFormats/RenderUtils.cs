@@ -58,6 +58,30 @@ namespace RAFullMapPreviewGenerator
             return bitmap;
         }
 
+        static public Bitmap RenderShpBibs(ShpReader shp, Palette p, int CellX, int CellY)
+        {
+            if (shp.ImageCount == 1) return RenderUtils.RenderShp(shp, p, 0);
+
+            var bitmap = new Bitmap(TemplateReader.TileSize * shp.Width, TemplateReader.TileSize * shp.Height);
+
+            Graphics g = Graphics.FromImage(bitmap);
+
+            int Frame = 0;
+            for (int y = 0; y < CellY; y++)
+            {
+                for (int x = 0; x < CellX; x++)
+                {
+                    Bitmap StructBitmap = RenderUtils.RenderShp(shp, p, Frame);
+
+                    g.DrawImage(bitmap, CellX * TemplateReader.TileSize, CellY * TemplateReader.TileSize, StructBitmap.Width, StructBitmap.Height);
+
+                    Frame++;
+                }
+                
+            }
+            return bitmap;
+        }
+
         public static Bitmap RenderTemplate(TemplateReader template, Palette p, int frame)
         {
             if (RenderUtils.TemplateTileCache.ContainsKey(template))
