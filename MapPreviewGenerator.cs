@@ -10,7 +10,7 @@ namespace RAFullMapPreviewGenerator
 {
     class MapPreviewGenerator
     {
-        static Dictionary<string, int> TiberiumStages = new Dictionary<string, int>();
+        static Dictionary<string, int> OreFrames = new Dictionary<string, int>();
         static Random MapRandom;
         const int CellSize = 24; // in pixels
         static bool IsLoaded = false;
@@ -581,12 +581,10 @@ namespace RAFullMapPreviewGenerator
             string Overlay = Cell.Overlay.ToLower();
             int Frame = 0;
 
-            if (TiberiumStages.ContainsKey(Overlay.ToLower()))
+            if (OreFrames.ContainsKey(Overlay.ToLower()))
             {
                 Frame = -1;
-                TiberiumStages.TryGetValue(Overlay.ToLower(), out Frame);
-                int index = MapRandom.Next(1, 12); // creates a number between 1 and 12
-                Overlay = string.Format("TI{0}", index);
+                OreFrames.TryGetValue(Overlay.ToLower(), out Frame);
             }
 
             string FilePath = Theater_File_String_From_Name(Overlay);
@@ -1256,18 +1254,18 @@ namespace RAFullMapPreviewGenerator
             Load_Building_Bibs();
             Load_Fake_Buildings();
 
-            TiberiumStages.Add("ti1", 0);
-            TiberiumStages.Add("ti2", 1);
-            TiberiumStages.Add("ti3", 2);
-            TiberiumStages.Add("ti4", 3);
-            TiberiumStages.Add("ti5", 4);
-            TiberiumStages.Add("ti6", 5);
-            TiberiumStages.Add("ti7", 6);
-            TiberiumStages.Add("ti8", 7);
-            TiberiumStages.Add("ti9", 8);
-            TiberiumStages.Add("ti10", 9);
-            TiberiumStages.Add("ti11", 10);
-            TiberiumStages.Add("ti12", 11);
+            Load_Ore_Frames();
+        }
+
+        private static void Load_Ore_Frames()
+        {
+            OreFrames.Add("gold01", 11);
+            OreFrames.Add("gold02", 11);
+            OreFrames.Add("gold03", 11);
+            OreFrames.Add("gold04", 11);
+            OreFrames.Add("gem01", 2);
+            OreFrames.Add("gem02", 2);
+            OreFrames.Add("gem03", 2);
         }
 
         static void Load_Fake_Buildings()
