@@ -99,6 +99,10 @@ namespace RAFullMapPreviewGenerator
                 }
             }
 
+            Draw_Units(g);
+            Draw_Infantries(g);
+            Draw_Ships(g);
+
             for (int y = 0; y < 128; y++)
             {
                 for (int x = 0; x < 128; x++)
@@ -116,12 +120,10 @@ namespace RAFullMapPreviewGenerator
             Draw_Bibs(g);
             Draw_Base_Structures(g);
             Draw_Structures(g);
-            Draw_Units(g);
-            Draw_Infantries(g);
-            Draw_Ships(g);
 
-            Draw_Waypoints(g);
             Draw_Cell_Triggers(g);
+            Draw_Waypoints(g);
+
 
             for (int y = 0; y < 128; y++)
             {
@@ -380,6 +382,11 @@ namespace RAFullMapPreviewGenerator
                     TurretBitmap = RenderUtils.RenderShp(SSAMShp, Remap,
                         Frame_From_Unit_Angle(u.Angle));
                 }
+                else if (Name == "mgg")
+                {
+                    // TODO implement turret, get the right frame for turret start too
+                    return;
+                }
                 else
                 {
                     TurretBitmap = RenderUtils.RenderShp(UnitShp, Remap,
@@ -539,7 +546,15 @@ namespace RAFullMapPreviewGenerator
         void Draw_Bib(Graphics g, string Name, int X, int Y, bool IsBaseStructureBib)
         {
             Name = Name.ToLower();
-            ShpReader BibShp = ShpReader.Load(Theater_File_String_From_Name(Name));
+            string FileName = Theater_File_String_From_Name(Name);
+
+            // Interior theater misses a shit ton of graphics so just return if doesn't exist
+            if (Theater == "interior" && !File.Exists(FileName))
+            {
+                return;
+            }
+
+            ShpReader BibShp = ShpReader.Load(FileName);
             int Frame = 0;
 
             int maxY = -1; int maxX = -1;
@@ -641,6 +656,14 @@ namespace RAFullMapPreviewGenerator
         {
             string TemplateString = "CLEAR1";
 
+            // Fix crash when parsing 6th Soviet missions, template 133 is
+            // bridge2.tem and only has 10 tiles, yet the map has tile 11 for template..
+            if (Cell.Template == 133 && Cell.Tile > 9)
+            {
+                Cell.Template = 0;
+                Cell.Tile = 0;
+            }
+
             if (Cell.Template == 0 || Cell.Template == 255 || Cell.Template == 65535)
             {
                 Cell.Tile = MapRandom.Next(0, 15);
@@ -734,6 +757,16 @@ namespace RAFullMapPreviewGenerator
                     bs.X = CellIndex % 128;
 
                     BaseStructures.Add(bs);
+
+                    if (bs.Name == "weap")
+                    {
+                        BaseStructureInfo bs2 = new BaseStructureInfo();
+                        bs2.Name = "weap2";
+                        bs2.X = bs.X;
+                        bs2.Y = bs.Y;
+
+                        BaseStructures.Add(bs2);
+                    }
 
                     if (BuildingBibs.ContainsKey(bs.Name))
                     {
