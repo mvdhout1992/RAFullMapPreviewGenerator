@@ -14,6 +14,7 @@ namespace RAFullMapPreviewGenerator
         static Random MapRandom;
         const int CellSize = 24; // in pixels
         static bool IsLoaded = false;
+        Palette BasePal;
         string Theater;
         string PalName;
         IniFile MapINI;
@@ -98,14 +99,6 @@ namespace RAFullMapPreviewGenerator
                 }
             }
 
-            Draw_Smudges(g);
-            Draw_Bibs(g);
-            Draw_Base_Structures(g);
-            Draw_Structures(g);
-            Draw_Units(g);
-            Draw_Infantries(g);
-            Draw_Ships(g);
-
             for (int y = 0; y < 128; y++)
             {
                 for (int x = 0; x < 128; x++)
@@ -118,6 +111,14 @@ namespace RAFullMapPreviewGenerator
                     }
                 }
             }
+
+            Draw_Smudges(g);
+            Draw_Bibs(g);
+            Draw_Base_Structures(g);
+            Draw_Structures(g);
+            Draw_Units(g);
+            Draw_Infantries(g);
+            Draw_Ships(g);
 
             Draw_Waypoints(g);
             Draw_Cell_Triggers(g);
@@ -470,7 +471,7 @@ namespace RAFullMapPreviewGenerator
 
             ShpReader BaseStructShp = ShpReader.Load(FileName);
 
-            Bitmap BaseStructBitmap = RenderUtils.RenderShp(BaseStructShp, /*Remap_For_House(s.Side, ColorScheme.Primary)*/ Pal,
+            Bitmap BaseStructBitmap = RenderUtils.RenderShp(BaseStructShp, BasePal,
                 0);
 
             Draw_Image_With_Opacity(g, BaseStructBitmap, bs.X * CellSize, bs.Y * CellSize);
@@ -705,6 +706,12 @@ namespace RAFullMapPreviewGenerator
 
         void Parse_Base()
         {
+            string PlayerBase = MapINI.getStringValue("Base", "Player", null);
+            if (PlayerBase != null)
+            {
+                BasePal = Remap_For_House(PlayerBase.ToLower(), ColorScheme.Primary);
+            }
+
             var SectionBase = MapINI.getSectionContent("Base");
             if (SectionBase != null)
             {
