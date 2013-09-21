@@ -31,7 +31,7 @@ namespace RAFullMapPreviewGenerator
         List<StructureInfo> Structures = new List<StructureInfo>();
         List<BaseStructureInfo> BaseStructures = new List<BaseStructureInfo>();
         List<CellTriggerInfo> CellsTriggers = new List<CellTriggerInfo>();
-        Dictionary<string, Palette> ColorRemaps = new Dictionary<string, Palette>();
+        static Dictionary<string, Palette> ColorRemaps = new Dictionary<string, Palette>();
         List<BibInfo> Bibs = new List<BibInfo>();
         static Dictionary<string, BuildingBibInfo> BuildingBibs = new Dictionary<string, BuildingBibInfo>();
         static Dictionary<string, int> BuildingDamageFrames = new Dictionary<string, int>();
@@ -52,6 +52,7 @@ namespace RAFullMapPreviewGenerator
             CellStruct[] Raw = new CellStruct[16384];
 
             Parse_Theater();
+            Load_House_Colors();
 
             Parse_MapPack(Raw);
             Parse_OverlayPack(Raw);
@@ -61,8 +62,8 @@ namespace RAFullMapPreviewGenerator
             Parse_Units();
             Parse_Infantry();
             Parse_Ships();
-            Parse_Structures();
             Parse_Base();
+            Parse_Structures();
             Parse_Cell_Triggers();
 
             for (int x = 0; x < 128; x++)
@@ -98,8 +99,8 @@ namespace RAFullMapPreviewGenerator
 
             Draw_Smudges(g);
             Draw_Bibs(g);
-            Draw_Structures(g);
             Draw_Base_Structures(g);
+            Draw_Structures(g);
             Draw_Units(g);
             Draw_Infantries(g);
             Draw_Ships(g);
@@ -238,7 +239,7 @@ namespace RAFullMapPreviewGenerator
 
             ShpReader InfShp = ShpReader.Load(General_File_String_From_Name(inf.Name));
 
-            Bitmap TempBitmap = RenderUtils.RenderShp(InfShp, /*Remap_For_House(inf.Side, ColorScheme.Secondary)*/ Pal,
+            Bitmap TempBitmap = RenderUtils.RenderShp(InfShp, Remap_For_House(inf.Side, ColorScheme.Secondary),
                 Frame_From_Infantry_Angle(inf.Angle));
 
             int subX, subY;
@@ -261,7 +262,7 @@ namespace RAFullMapPreviewGenerator
             string Name = sh.Name;
             ShpReader ShipShp = ShpReader.Load(General_File_String_From_Name(Name));
 
-            Palette Remap = /*Remap_For_House(u.Side, ColorScheme.Secondary)*/ Pal;
+            Palette Remap = Remap_For_House(sh.Side, ColorScheme.Secondary);
 
             int Frame = -1;
             Frame = Frame_From_Ship_Angle(sh.Angle);
@@ -308,7 +309,7 @@ namespace RAFullMapPreviewGenerator
             string Name = u.Name;
             ShpReader UnitShp = ShpReader.Load(General_File_String_From_Name(u.Name));
 
-            Palette Remap = /*Remap_For_House(u.Side, ColorScheme.Secondary)*/ Pal;
+            Palette Remap = Remap_For_House(u.Side, ColorScheme.Secondary);
 
             int Frame = -1;
 
@@ -439,10 +440,6 @@ namespace RAFullMapPreviewGenerator
                 0);
 
             Draw_Image_With_Opacity(g, BaseStructBitmap, bs.X * CellSize, bs.Y * CellSize);
-
-            /* g.FillRectangle(new SolidBrush(Color.FromArgb(140, 255, 255, 255)),
-                bs.X * CellSize, bs.Y  * CellSize,
-                BaseStructBitmap.Width, BaseStructBitmap.Height); */
         }
 
         void Draw_Image_With_Opacity(Graphics g, Bitmap bitmap, int X, int Y)
@@ -482,7 +479,7 @@ namespace RAFullMapPreviewGenerator
             int Frame = Frame_From_Building_HP(s);
             if (s.Name == "gun" || s.Name == "agun") Frame += Frame_From_Unit_Angle(s.Angle);
 
-            Bitmap StructBitmap = RenderUtils.RenderShp(StructShp, /*Remap_For_House(s.Side, ColorScheme.Primary)*/ Pal,
+            Bitmap StructBitmap = RenderUtils.RenderShp(StructShp,  Remap_For_House(s.Side, ColorScheme.Primary),
                 Frame);
 
             g.DrawImage(StructBitmap, s.X * CellSize, s.Y * CellSize, StructBitmap.Width, StructBitmap.Height);
@@ -1030,6 +1027,28 @@ namespace RAFullMapPreviewGenerator
             return ("data/general/" + Name + ".shp");
         }
 
+        public Palette Remap_For_House(string HouseName, ColorScheme Scheme)
+        {
+
+            string Colour = "None";
+
+            HouseInfo House = new HouseInfo();
+            HouseColors.TryGetValue(HouseName.ToLower(), out House);
+
+            switch (Scheme)
+            {
+                case ColorScheme.Primary: Colour = House.PrimaryColor; break;
+                case ColorScheme.Secondary: Colour = House.SecondaryColor; break;
+                default: break;
+            }
+
+//            Colour = "White";
+
+            Palette Pal = this.Pal;
+            ColorRemaps.TryGetValue(Colour, out Pal);
+            return Pal;
+        }
+
         int Frame_For_Fence(string Name, int X, int Y)
         {
             bool Top = Cell_Contains_Same_Overlay(X, Y - 1, Name);
@@ -1248,8 +1267,9 @@ namespace RAFullMapPreviewGenerator
         public static void Load()
         {
             TilesetsINI = new IniFile("data/tilesets.ini");
-            MapRandom = new Random(); ;
+            MapRandom = new Random();
 
+            Load_Remap_Palettes();
             Load_Building_Damage_Frames();
             Load_Building_Bibs();
             Load_Fake_Buildings();
@@ -1369,6 +1389,270 @@ namespace RAFullMapPreviewGenerator
             BuildingDamageFrames.Add("v36", 1);
             BuildingDamageFrames.Add("v37", 1);
         }
+
+        public void Load_House_Colors()
+        {
+            HouseColors.Add("spain", new HouseInfo("Yellow", "Yellow"));
+            HouseColors.Add("greece", new HouseInfo("Blue", "Blue"));
+            HouseColors.Add("ussr", new HouseInfo("Red", "Red"));
+            HouseColors.Add("england", new HouseInfo("Green", "Green"));
+            HouseColors.Add("ukraine", new HouseInfo("Orange", "Orange"));
+            HouseColors.Add("germany", new HouseInfo("Gray", "Gray"));
+            HouseColors.Add("france", new HouseInfo("Teal", "Teal"));
+            HouseColors.Add("turkey", new HouseInfo("Brown", "Brown"));
+
+            HouseColors.Add("special", new HouseInfo("Yellow", "Yellow"));
+            HouseColors.Add("neutral", new HouseInfo("Yellow", "Yellow"));
+            HouseColors.Add("goodguy", new HouseInfo("Blue", "Blue"));
+            HouseColors.Add("badguy", new HouseInfo("Red", "Red"));
+
+            HouseColors.Add("multi1", new HouseInfo("Yellow", "Yellow"));
+            HouseColors.Add("multi2", new HouseInfo("Blue", "Blue"));
+            HouseColors.Add("multi3", new HouseInfo("Red", "Red"));
+            HouseColors.Add("multi4", new HouseInfo("Green", "Green"));
+            HouseColors.Add("multi5", new HouseInfo("Orange", "Orange"));
+            HouseColors.Add("multi6", new HouseInfo("Gray", "Gray"));
+            HouseColors.Add("multi7", new HouseInfo("Teal", "Teal"));
+            HouseColors.Add("multi8", new HouseInfo("Brown", "Brown"));
+
+            foreach (string section in MapINI.getSectionNames())
+            {
+                string sect = section.ToLower();
+                if (HouseColors.ContainsKey(sect))
+                {
+                    //                    Console.WriteLine("section = {0}", sect);
+
+                    HouseInfo House = new HouseInfo();
+                    HouseColors.TryGetValue(sect, out House);
+
+                    int SecondaryColor = MapINI.getIntValue(section, "SecondaryColorScheme", -1);
+                    if (SecondaryColor != -1) House.SecondaryColor = Parse_Color(SecondaryColor);
+
+                    int PrimaryColor = MapINI.getIntValue(section, "Color", -1);
+                    if (PrimaryColor != -1) House.PrimaryColor = Parse_Color(PrimaryColor);
+
+                    HouseColors.Remove(sect);
+                    HouseColors.Add(sect, House);
+                }
+            }
+
+            HouseInfo BadGuy = new HouseInfo();
+            HouseColors.TryGetValue("badguy", out BadGuy);
+
+            //            Console.WriteLine("PrimaryColor = {0}, SecondaryColor = {1}",
+            //               BadGuy.PrimaryColor, BadGuy.SecondaryColor);
+        }
+
+        string Parse_Color(int Color)
+        {
+            switch (Color)
+            {
+                case 0: return "Yellow";
+                case 1: return "Blue";
+                case 2: return "Red";
+                case 3: return "Green";
+                case 4: return "Orange";
+                case 5: return "Grey";
+                case 6: return "Teal";
+                case 7: return "Brown";
+                case 8: return "White";
+                case 9: return "Black";
+                case 10: return "FlamingBlue";
+                default: return null;
+            }
+        }
+
+        static void Load_Remap_Palettes()
+        {
+            int[] ShadowIndex = { 3, 4 };
+
+            ColorRemaps.Add("Yellow", Palette.Load("data/temperate/temperat.pal", ShadowIndex));
+
+            ColorRemaps.Add("White", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
+                new RGB[] {
+                               new RGB(255, 255, 255), // 15
+                               new RGB(225, 225, 225),  // 15
+                               new RGB(238, 238, 238), // 128
+                               new RGB(238, 238, 238), // 128
+                               new RGB(238, 238, 238), // 128
+                               new RGB(174, 174, 174), // 132
+                               new RGB(174, 174, 174), // 132
+                               new RGB(161, 161, 161),  // 133
+                               new RGB(125, 125, 125), // 136
+                               new RGB(113, 113, 113), // 137
+                               new RGB(101, 101, 101), // 138
+                               new RGB(101, 101, 101), // 138
+                               new RGB(93, 93, 93), // 139
+                               new RGB(93, 93, 93), // 139
+                               new RGB(36, 36, 36), // 142
+                               new RGB(20, 20, 20), // 143     
+                            }));
+
+            ColorRemaps.Add("Teal", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
+                new RGB[] {
+                // RemapIndexes=2,119,118,135,136,138,112,12,118,135,136,137,138,139,114,112
+                               new RGB(0, 168, 168), // 2
+                               new RGB(116, 148, 156), // 119
+                               new RGB(100, 128, 136), // 118
+                               new RGB(0, 112, 112), // 135
+                               new RGB(4, 92, 100), // 136
+                               new RGB(16, 60, 80), // 138
+                               new RGB(4, 4, 8), // 112
+                               new RGB(0, 0, 0), // 12
+                               new RGB(100, 128, 136), // 118
+                               new RGB(0, 112, 112), // 135
+                               new RGB(4, 92, 100), // 136
+                               new RGB(8, 76, 92), // 137
+                               new RGB(16, 60, 80), // 138
+                               new RGB(20, 52, 72), // 139
+                               new RGB(36, 44, 62), // 114
+                               new RGB(4, 4, 8), // 112                 
+                            }));
+            ColorRemaps.Add("Orange", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
+                new RGB[] {
+                // RemapIndexes=24,25,26,27,29,31,46,47,26,27,28,29,30,31,43,47
+                               new RGB(236, 172, 72), // 24
+                               new RGB(228, 148, 48), // 25
+                               new RGB(212, 120, 16), // 26
+                               new RGB(196, 96, 0), // 27
+                               new RGB(164, 56, 0), // 29
+                               new RGB(136, 24, 0), // 31
+                               new RGB(96, 8, 0), // 46
+                               new RGB(16, 0, 0), // 47
+                               new RGB(212, 120, 16), // 26
+                               new RGB(196, 96, 0), // 27
+                               new RGB(180, 72, 0), // 28
+                               new RGB(164, 56, 0), // 29
+                               new RGB(152, 40, 0), // 30
+                               new RGB(136, 24, 0), // 31
+                               new RGB(112, 8, 0), // 43
+                               new RGB(16, 0, 0), // 47          
+                            }));
+
+            ColorRemaps.Add("Green", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
+                new RGB[] {
+                // RemapIndexes=5,165,166,167,159,142,140,199,166,167,157,3,159,143,142,141
+                               new RGB(252, 252, 84), // 5
+                               new RGB(208, 240, 0), // 165
+                               new RGB(160, 224, 28), // 166
+                               new RGB(140, 200, 8), // 167
+                               new RGB(60, 152, 56), // 159
+                               new RGB(60, 100, 56), // 142
+                               new RGB(40, 68, 36), // 140
+                               new RGB(24, 24, 24), // 199
+                               new RGB(160, 224, 28), // 166
+                               new RGB(140, 200, 8), // 167
+                               new RGB(172, 176, 32), // 157
+                               new RGB(0, 168, 0), // 3
+                               new RGB(60, 152, 56), // 159
+                               new RGB(60, 100, 56), // 142
+                               new RGB(60, 100, 56), // 142
+                               new RGB(48, 84, 44), // 141        
+                            }));
+
+            ColorRemaps.Add("Gray", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
+                new RGB[] {
+                // RemapIndexes=161,200,201,202,204,205,206,12,201,202,203,204,205,115,198,114
+                               new RGB(216, 252, 252), // 161
+                               new RGB(220, 220, 228), // 200
+                               new RGB(192, 192, 228), // 201
+                               new RGB(164, 164, 188), // 202
+                               new RGB(100, 100, 124), // 204
+                               new RGB(72, 72, 92), // 205
+                               new RGB(44, 44, 60), // 206
+                               new RGB(0, 0, 0), // 12
+                               new RGB(192, 192, 228), // 201
+                               new RGB(164, 164, 188), // 202
+                               new RGB(132, 132, 156), // 203
+                               new RGB(100, 100, 124), // 204
+                               new RGB(72, 72, 92), // 205
+                               new RGB(56, 72, 76), // 115
+                               new RGB(52, 52, 52), // 198
+                               new RGB(36, 44, 52), // 114        
+                            }));
+
+            ColorRemaps.Add("DarkGray", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
+                new RGB[] {
+                // RemapIndexes=14,195,196,13,169,198,199,112,14,195,196,13,169,198,199,112
+                               new RGB(168, 168, 168), // 14
+                               new RGB(132, 132, 132), // 195
+                               new RGB(108, 108, 108), // 196
+                               new RGB(84, 84, 84), // 13
+                               new RGB(72, 72, 72), // 169
+                               new RGB(52, 52, 52), // 198
+                               new RGB(24, 24, 24), // 199
+                               new RGB(4, 4, 8), // 112
+                               new RGB(168, 168, 168), // 14
+                               new RGB(132, 132, 132), // 195
+                               new RGB(108, 108, 108), // 196
+                               new RGB(84, 84, 84), // 13
+                               new RGB(72, 72, 72), // 169
+                               new RGB(52, 52, 52), // 198
+                               new RGB(24, 24, 24), // 199
+                               new RGB(4, 4, 8), // 112        
+                            }));
+            ColorRemaps.Add("Brown", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
+                new RGB[] {
+                // RemapIndexes=146,152,209,151,173,150,173,183,146,152,209,151,173,150,173,183
+                               new RGB(180, 144, 80), // 146
+                               new RGB(164, 120, 88), // 152
+                               new RGB(168, 172, 76), // 209
+                               new RGB(128, 92, 72), // 151
+                               new RGB(112, 84, 8), // 173
+                               new RGB(104, 76, 56), // 150
+                               new RGB(112, 84, 8), // 173
+                               new RGB(16, 12, 4), // 183
+                               new RGB(180, 144, 80), // 146
+                               new RGB(164, 120, 88), // 152
+                               new RGB(168, 172, 76), // 209
+                               new RGB(84, 84, 84), // 151
+                               new RGB(112, 84, 8), // 173
+                               new RGB(104, 76, 56), // 150
+                               new RGB(112, 84, 8), // 173
+                               new RGB(16, 12, 4), // 183      
+                            }));
+
+            ColorRemaps.Add("Fire", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
+                new RGB[] {
+                // RemapIndexes=5,149,25,27,29,175,47,12,24,26,28,30,31,31,44,46
+                               new RGB(252, 252, 84), // 5
+                               new RGB(252, 208, 72), // 149
+                               new RGB(228, 148, 48), // 25
+                               new RGB(196, 96, 0), // 27
+                               new RGB(164, 56, 0), // 29
+                               new RGB(128, 16, 0), // 175
+                               new RGB(16, 0, 0), // 47
+                               new RGB(0, 0, 0), // 12
+                               new RGB(236, 172, 72), // 24
+                               new RGB(212, 120, 16), // 26
+                               new RGB(180, 72, 0), // 28
+                               new RGB(152, 40, 0), // 30
+                               new RGB(136, 24, 0), // 31
+                               new RGB(136, 24, 0), // 31
+                               new RGB(96, 16, 0), // 44
+                               new RGB(98, 8, 0), // 46      
+                            }));
+            ColorRemaps.Add("WarmSilver", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
+                new RGB[] {
+                // RemapIndexes=192,164,132,155,133,197,112,12,163,132,155,133,134,197,154,198
+                               new RGB(216, 216, 216), // 192
+                               new RGB(216, 208, 192), // 164
+                               new RGB(176, 164, 132), // 132
+                               new RGB(160, 144, 124), // 155
+                               new RGB(144, 128, 116), // 133
+                               new RGB(84, 84, 84), // 197
+                               new RGB(4, 4, 8), // 112
+                               new RGB(0, 0, 0), // 12
+                               new RGB(208, 196, 172), // 163
+                               new RGB(176, 164, 132), // 132
+                               new RGB(160, 144, 124), // 155
+                               new RGB(144, 128, 116), // 133
+                               new RGB(116, 100, 100), // 134
+                               new RGB(84, 84, 84), // 197
+                               new RGB(64, 64, 64), // 154
+                               new RGB(52, 52, 52), // 198    
+                            }));
+        }
     }
 
     struct ShipInfo
@@ -1423,6 +1707,7 @@ namespace RAFullMapPreviewGenerator
         public int Y;
         public bool IsBaseStructureBib;
     }
+
     struct SmudgeInfo
     {
         public string Name;
@@ -1491,19 +1776,7 @@ namespace RAFullMapPreviewGenerator
         Ore,
         Gems,
     }
-    public struct RGB
-    {
-        public byte R;
-        public byte G;
-        public byte B;
 
-        public RGB(byte R_, byte G_, byte B_)
-        {
-            R = R_;
-            G = G_;
-            B = B_;
-        }
-    }
     enum ColorScheme
     {
         Primary,
