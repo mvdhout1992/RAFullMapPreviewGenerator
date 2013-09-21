@@ -33,6 +33,7 @@ namespace RAFullMapPreviewGenerator
         List<CellTriggerInfo> CellsTriggers = new List<CellTriggerInfo>();
         static Dictionary<string, Palette> ColorRemaps = new Dictionary<string, Palette>();
         List<BibInfo> Bibs = new List<BibInfo>();
+        static Dictionary<string, Palette> CivilianRemaps = new Dictionary<string, Palette>();
         static Dictionary<string, BuildingBibInfo> BuildingBibs = new Dictionary<string, BuildingBibInfo>();
         static Dictionary<string, int> BuildingDamageFrames = new Dictionary<string, int>();
         static Dictionary<string, string> FakeBuildings = new Dictionary<string, string>();
@@ -230,16 +231,32 @@ namespace RAFullMapPreviewGenerator
 
         void Draw_Infantry(InfantryInfo inf, Graphics g)
         {
-            inf.Name = inf.Name.ToLower();
-            if (inf.Name == "c10" || inf.Name == "c9" || inf.Name == "c8" || inf.Name == "c7" ||
-                inf.Name == "c6" || inf.Name == "c5" || inf.Name == "c4" || inf.Name == "c3")
+            Palette InfPal = null;
+
+            if (CivilianRemaps.ContainsKey(inf.Name))
+            {
+                CivilianRemaps.TryGetValue(inf.Name, out InfPal);
+            }
+            else
+            {
+                InfPal = Remap_For_House(inf.Side, ColorScheme.Secondary);
+            }
+
+            if (inf.Name == "c2" || inf.Name == "c5" || inf.Name == "c4" ||
+                inf.Name == "c6" || inf.Name == "c7" || inf.Name == "c8" || inf.Name == "c9" || inf.Name == "c10")
             {
                 inf.Name = "c1";
             }
+            else if (inf.Name == "c3")
+            {
+                inf.Name = "c2";
+            }
+
+            inf.Name = "c2";
 
             ShpReader InfShp = ShpReader.Load(General_File_String_From_Name(inf.Name));
 
-            Bitmap TempBitmap = RenderUtils.RenderShp(InfShp, Remap_For_House(inf.Side, ColorScheme.Secondary),
+            Bitmap TempBitmap = RenderUtils.RenderShp(InfShp, InfPal,
                 Frame_From_Infantry_Angle(inf.Angle));
 
             int subX, subY;
@@ -787,7 +804,7 @@ namespace RAFullMapPreviewGenerator
                     string[] InfData = InfCommaString.Split(',');
 
                     InfantryInfo inf = new InfantryInfo();
-                    inf.Name = InfData[1];
+                    inf.Name = InfData[1].ToLower();
                     inf.Side = InfData[0];
                     inf.Angle = int.Parse(InfData[6]);
                     inf.SubCell = int.Parse(InfData[4]);
@@ -1269,6 +1286,7 @@ namespace RAFullMapPreviewGenerator
             TilesetsINI = new IniFile("data/tilesets.ini");
             MapRandom = new Random();
 
+            Load_Civilian_Remap_Palettes();
             Load_Remap_Palettes();
             Load_Building_Damage_Frames();
             Load_Building_Bibs();
@@ -1463,6 +1481,85 @@ namespace RAFullMapPreviewGenerator
                 case 10: return "FlamingBlue";
                 default: return null;
             }
+        }
+
+        static void Load_Civilian_Remap_Palettes()
+        {
+            int[] ShadowIndex = { 3, 4 };
+
+            Palette C2Pal = Palette.Load("data/temperate/temperat.pal", ShadowIndex);
+            C2Pal.Set_RGB(7, new RGB(255, 214, 125)); // 209
+            C2Pal.Set_RGB(14, new RGB(0, 0, 0)); // 12
+            C2Pal.Set_RGB(118, new RGB(28, 109, 97)); // 187
+            C2Pal.Set_RGB(119, new RGB(24, 89, 76)); // 188
+            C2Pal.Set_RGB(159, new RGB(255, 214, 125)); // 209
+            C2Pal.Set_RGB(187, new RGB(89, 105, 149)); // 167
+            C2Pal.Set_RGB(188, new RGB(85, 85, 85)); // 13
+            CivilianRemaps.Add("c2", C2Pal);
+
+            Palette C4Pal = Palette.Load("data/temperate/temperat.pal", ShadowIndex);
+            C4Pal.Set_RGB(7, new RGB(174, 93, 68)); // 187
+            C4Pal.Set_RGB(109, new RGB(133, 113, 101)); // 118
+            C4Pal.Set_RGB(111, new RGB(113, 89, 80)); // 119
+            C4Pal.Set_RGB(206, new RGB(24, 89, 76)); // 188
+            C4Pal.Set_RGB(210, new RGB(36, 48, 52)); // 182
+            CivilianRemaps.Add("c4", C4Pal);
+
+            Palette C5Pal = Palette.Load("data/temperate/temperat.pal", ShadowIndex);
+            C5Pal.Set_RGB(7, new RGB(149, 129, 97)); // 109
+            C5Pal.Set_RGB(12, new RGB(190, 190, 190)); // 131
+            C5Pal.Set_RGB(109, new RGB(117, 149, 157)); // 177
+            C5Pal.Set_RGB(111, new RGB(101, 129, 137)); // 178
+            C5Pal.Set_RGB(200, new RGB(125, 97, 72)); // 111
+            C5Pal.Set_RGB(206, new RGB(125, 97, 72)); // 111
+            C5Pal.Set_RGB(210, new RGB(36, 48, 52)); // 182
+            CivilianRemaps.Add("c5", C5Pal);
+
+            Palette C6Pal = Palette.Load("data/temperate/temperat.pal", ShadowIndex);
+            C6Pal.Set_RGB(7, new RGB(93, 72, 64)); // 120
+            C6Pal.Set_RGB(118, new RGB(149, 0, 0)); // 236
+            C6Pal.Set_RGB(119, new RGB(113, 44, 36)); // 206
+            C6Pal.Set_RGB(159, new RGB(125, 97, 72)); // 111
+            CivilianRemaps.Add("c6", C6Pal);
+
+            Palette C7Pal = Palette.Load("data/temperate/temperat.pal", ShadowIndex);
+            C7Pal.Set_RGB(14, new RGB(190, 190, 190)); // 131
+            C7Pal.Set_RGB(118, new RGB(255, 214, 0)); //  157
+            C7Pal.Set_RGB(119, new RGB(234, 161, 64)); // 212
+            C7Pal.Set_RGB(159, new RGB(170, 85, 0)); // 7
+            C7Pal.Set_RGB(187, new RGB(133, 133, 101)); // 118
+            C7Pal.Set_RGB(188, new RGB(113, 89, 80)); // 119
+            CivilianRemaps.Add("c7", C7Pal);
+
+            Palette C8Pal = Palette.Load("data/temperate/temperat.pal", ShadowIndex);
+            C8Pal.Set_RGB(7, new RGB(36, 48, 52)); // 182
+            C8Pal.Set_RGB(14, new RGB(170, 170, 170)); // 131
+            C8Pal.Set_RGB(118, new RGB(198, 97, 0)); // 215
+            C8Pal.Set_RGB(119, new RGB(170, 85, 0)); // 7
+            C8Pal.Set_RGB(159, new RGB(36, 48, 52)); // 182
+            C8Pal.Set_RGB(187, new RGB(20, 60, 157)); // 198
+            C8Pal.Set_RGB(188, new RGB(16, 48, 137)); // 199
+            C8Pal.Set_RGB(200, new RGB(125, 97, 72)); // 111
+            CivilianRemaps.Add("c8", C8Pal);
+
+            Palette C9Pal = Palette.Load("data/temperate/temperat.pal", ShadowIndex);
+            C9Pal.Set_RGB(14, new RGB(170, 85, 0)); // 7
+            C9Pal.Set_RGB(118, new RGB(161, 170, 202)); // 163
+            C9Pal.Set_RGB(119, new RGB(125, 133, 174)); // 165
+            C9Pal.Set_RGB(159, new RGB(210, 153, 125)); // 200
+            C9Pal.Set_RGB(187, new RGB(125, 97, 72)); // 111
+            C9Pal.Set_RGB(188, new RGB(85, 85, 85)); // 13
+            CivilianRemaps.Add("c9", C9Pal);
+
+            Palette C10Pal = Palette.Load("data/temperate/temperat.pal", ShadowIndex);
+            C10Pal.Set_RGB(7, new RGB(113, 113, 113)); // 137
+            C10Pal.Set_RGB(14, new RGB(0, 170, 170)); // 2
+            C10Pal.Set_RGB(118, new RGB(230, 230, 230)); // 129
+            C10Pal.Set_RGB(119, new RGB(190, 190, 190)); // 131
+            C10Pal.Set_RGB(159, new RGB(113, 113, 113)); // 137
+            C10Pal.Set_RGB(187, new RGB(161, 170, 202)); // 163
+            C10Pal.Set_RGB(188, new RGB(125, 133, 174)); // 165
+            CivilianRemaps.Add("c10", C10Pal);
         }
 
         static void Load_Remap_Palettes()

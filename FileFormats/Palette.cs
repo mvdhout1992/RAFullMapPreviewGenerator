@@ -61,6 +61,11 @@ namespace RAFullMapPreviewGenerator
             colors = (uint[])p.colors.Clone();
         }
 
+        public void Set_RGB(int index, RGB rgb)
+        {
+            colors[index] = Value_From_RGB(rgb);
+        }
+
         public ColorPalette AsSystemPalette()
         {
             ColorPalette pal;
@@ -111,6 +116,7 @@ namespace RAFullMapPreviewGenerator
                 return p;
             }
         }
+
         public static uint Value_From_RGB(RGB rgb)
         {
             byte r = rgb.R;
