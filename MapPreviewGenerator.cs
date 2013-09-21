@@ -1431,6 +1431,9 @@ namespace RAFullMapPreviewGenerator
                     int PrimaryColor = MapINI.getIntValue(section, "Color", -1);
                     if (PrimaryColor != -1) House.PrimaryColor = Parse_Color(PrimaryColor);
 
+                    PrimaryColor = MapINI.getIntValue(section, "Colour", -1);
+                    if (PrimaryColor != -1) House.PrimaryColor = Parse_Color(PrimaryColor);
+
                     HouseColors.Remove(sect);
                     HouseColors.Add(sect, House);
                 }
@@ -1488,169 +1491,184 @@ namespace RAFullMapPreviewGenerator
                                new RGB(20, 20, 20), // 143     
                             }));
 
-            ColorRemaps.Add("Teal", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
+            ColorRemaps.Add("Black", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
                 new RGB[] {
-                // RemapIndexes=2,119,118,135,136,138,112,12,118,135,136,137,138,139,114,112
-                               new RGB(0, 168, 168), // 2
-                               new RGB(116, 148, 156), // 119
-                               new RGB(100, 128, 136), // 118
-                               new RGB(0, 112, 112), // 135
-                               new RGB(4, 92, 100), // 136
-                               new RGB(16, 60, 80), // 138
-                               new RGB(4, 4, 8), // 112
+                               new RGB(101, 101, 101), // 138
+                               new RGB(93, 93, 93), // 139
+                               new RGB(76, 76, 76), // 140
+                               new RGB(76, 76, 76), // 140
+                               new RGB(56, 56, 56), // 141
+                               new RGB(56, 56, 56), // 141
+                               new RGB(36, 36, 36), // 142
+                               new RGB(36, 36, 36), // 142
+                               new RGB(20, 20, 20), // 143
+                               new RGB(20, 20, 20), // 143
+                               new RGB(32, 28, 28), // 19
+                               new RGB(20, 20, 24), // 18
+                               new RGB(12, 16, 20), // 17
+                               new RGB(12, 16, 20), // 17
                                new RGB(0, 0, 0), // 12
-                               new RGB(100, 128, 136), // 118
-                               new RGB(0, 112, 112), // 135
-                               new RGB(4, 92, 100), // 136
-                               new RGB(8, 76, 92), // 137
-                               new RGB(16, 60, 80), // 138
-                               new RGB(20, 52, 72), // 139
-                               new RGB(36, 44, 62), // 114
-                               new RGB(4, 4, 8), // 112                 
+                               new RGB(0, 0, 0), // 12               
                             }));
-            ColorRemaps.Add("Orange", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
+
+            ColorRemaps.Add("FlamingBlue", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
                 new RGB[] {
-                // RemapIndexes=24,25,26,27,29,31,46,47,26,27,28,29,30,31,43,47
-                               new RGB(236, 172, 72), // 24
-                               new RGB(228, 148, 48), // 25
-                               new RGB(212, 120, 16), // 26
-                               new RGB(196, 96, 0), // 27
-                               new RGB(164, 56, 0), // 29
-                               new RGB(136, 24, 0), // 31
-                               new RGB(96, 8, 0), // 46
-                               new RGB(16, 0, 0), // 47
-                               new RGB(212, 120, 16), // 26
-                               new RGB(196, 96, 0), // 27
-                               new RGB(180, 72, 0), // 28
-                               new RGB(164, 56, 0), // 29
-                               new RGB(152, 40, 0), // 30
-                               new RGB(136, 24, 0), // 31
-                               new RGB(112, 8, 0), // 43
-                               new RGB(16, 0, 0), // 47          
+                               new RGB(226, 230, 246), // 160
+                               new RGB(206, 210, 234), // 161
+                               new RGB(182, 218, 255), // 192
+                               new RGB(125, 190, 242), // 193
+                               new RGB(68, 149, 230), // 194
+                               new RGB(40, 121, 218), // 195
+                               new RGB(36, 85, 206), // 196
+                               new RGB(24, 68, 192), // 197
+                               new RGB(20, 60, 157), // 198
+                               new RGB(20, 60, 157), // 198
+                               new RGB(16, 48, 137), // 199
+                               new RGB(16, 48, 137), // 199
+                               new RGB(24, 44, 85), // 173
+                               new RGB(12, 32, 58), // 174
+                               new RGB(8, 20, 52), // 175
+                               new RGB(8, 20, 52), // 175     
+                            }));
+
+            ColorRemaps.Add("Blue", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
+                new RGB[] {
+                               new RGB(226, 230, 246), // 0
+                               new RGB(206, 210, 234), // 1
+                               new RGB(182, 190, 222), // 2
+                               new RGB(161, 170, 202), // 3
+                               new RGB(141, 149, 186), // 4
+                               new RGB(125, 133, 174), // 5
+                               new RGB(105, 117, 161), // 6
+                               new RGB(89, 105, 149), // 7
+                               new RGB(68, 85, 137), // 8
+                               new RGB(56, 72, 125), // 9
+                               new RGB(48, 64, 117), // 10
+                               new RGB(40, 56, 109), // 11
+                               new RGB(32, 44, 97), // 12
+                               new RGB(24, 44, 85), // 13
+                               new RGB(12, 32, 68), // 14
+                               new RGB(8, 20, 52), // 15   
+                            }));
+
+            ColorRemaps.Add("Red", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
+                new RGB[] {
+                               new RGB(255, 93, 0), // 0
+                               new RGB(255, 0, 0), // 1
+                               new RGB(238, 0, 0), // 2
+                               new RGB(218, 0, 0), // 3
+                               new RGB(206, 0, 0), // 4
+                               new RGB(190, 0, 0), // 5
+                               new RGB(178, 0, 0), // 6
+                               new RGB(170, 0, 0), // 7
+                               new RGB(149, 0, 0), // 8
+                               new RGB(133, 0, 0), // 9
+                               new RGB(117, 0, 0), // 10
+                               new RGB(101, 0, 0), // 11
+                               new RGB(93, 8, 0), // 12
+                               new RGB(76, 0, 0), // 13
+                               new RGB(56, 0, 0), // 14
+                               new RGB(56, 0, 0), // 15   
                             }));
 
             ColorRemaps.Add("Green", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
                 new RGB[] {
-                // RemapIndexes=5,165,166,167,159,142,140,199,166,167,157,3,159,143,142,141
-                               new RGB(252, 252, 84), // 5
-                               new RGB(208, 240, 0), // 165
-                               new RGB(160, 224, 28), // 166
-                               new RGB(140, 200, 8), // 167
-                               new RGB(60, 152, 56), // 159
-                               new RGB(60, 100, 56), // 142
-                               new RGB(40, 68, 36), // 140
-                               new RGB(24, 24, 24), // 199
-                               new RGB(160, 224, 28), // 166
-                               new RGB(140, 200, 8), // 167
-                               new RGB(172, 176, 32), // 157
-                               new RGB(0, 168, 0), // 3
-                               new RGB(60, 152, 56), // 159
-                               new RGB(60, 100, 56), // 142
-                               new RGB(60, 100, 56), // 142
-                               new RGB(48, 84, 44), // 141        
+                               new RGB(255, 230, 149), // 0
+                               new RGB(255, 230, 149), // 1
+                               new RGB(198, 230, 133), // 2
+                               new RGB(178, 210, 125), // 3
+                               new RGB(157, 190, 117), // 4
+                               new RGB(137, 174, 109), // 5
+                               new RGB(121, 153, 101), // 6
+                               new RGB(104, 137, 93), // 7
+                               new RGB(89, 117, 76), // 8
+                               new RGB(76, 101, 60), // 9
+                               new RGB(60, 85, 48), // 10
+                               new RGB(48, 68, 36), // 11
+                               new RGB(36, 52, 24), // 12
+                               new RGB(36, 52, 24), // 13
+                               new RGB(24, 36, 16), // 14
+                               new RGB(20, 20, 20), // 15   
+                            }));
+
+            ColorRemaps.Add("Orange", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
+                new RGB[] {
+                               new RGB(255, 230, 149), // 0
+                               new RGB(255, 214, 125), // 1
+                               new RGB(246, 198, 113), // 2
+                               new RGB(238, 174, 85), // 3
+                               new RGB(234, 161, 64), // 4
+                               new RGB(230, 145, 40), // 5
+                               new RGB(214, 121, 16), // 6
+                               new RGB(198, 97, 0), // 7
+                               new RGB(182, 72, 0), // 8
+                               new RGB(165, 56, 0), // 9
+                               new RGB(153, 40, 0), // 10
+                               new RGB(133, 32, 0), // 11
+                               new RGB(109, 16, 0), // 12
+                               new RGB(93, 8, 0), // 13
+                               new RGB(76, 0, 0), // 14
+                               new RGB(56, 0, 0), // 15   
                             }));
 
             ColorRemaps.Add("Gray", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
                 new RGB[] {
-                // RemapIndexes=161,200,201,202,204,205,206,12,201,202,203,204,205,115,198,114
-                               new RGB(216, 252, 252), // 161
-                               new RGB(220, 220, 228), // 200
-                               new RGB(192, 192, 228), // 201
-                               new RGB(164, 164, 188), // 202
-                               new RGB(100, 100, 124), // 204
-                               new RGB(72, 72, 92), // 205
-                               new RGB(44, 44, 60), // 206
-                               new RGB(0, 0, 0), // 12
-                               new RGB(192, 192, 228), // 201
-                               new RGB(164, 164, 188), // 202
-                               new RGB(132, 132, 156), // 203
-                               new RGB(100, 100, 124), // 204
-                               new RGB(72, 72, 92), // 205
-                               new RGB(56, 72, 76), // 115
-                               new RGB(52, 52, 52), // 198
-                               new RGB(36, 44, 52), // 114        
+                               new RGB(238, 238, 238), // 0
+                               new RGB(238, 226, 218), // 1
+                               new RGB(222, 206, 198), // 2
+                               new RGB(206, 186, 178), // 3
+                               new RGB(186, 165, 153), // 4
+                               new RGB(165, 145, 133), // 5
+                               new RGB(149, 125, 113), // 6
+                               new RGB(133, 113, 101), // 7
+                               new RGB(113, 89, 80), // 8
+                               new RGB(93, 72, 64), // 9
+                               new RGB(80, 60, 52), // 10
+                               new RGB(80, 60, 52), // 11
+                               new RGB(60, 44, 40), // 12
+                               new RGB(60, 44, 40), // 13
+                               new RGB(44, 28, 24), // 14
+                               new RGB(44, 28, 24), // 15   
                             }));
 
-            ColorRemaps.Add("DarkGray", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
+            ColorRemaps.Add("Teal", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
                 new RGB[] {
-                // RemapIndexes=14,195,196,13,169,198,199,112,14,195,196,13,169,198,199,112
-                               new RGB(168, 168, 168), // 14
-                               new RGB(132, 132, 132), // 195
-                               new RGB(108, 108, 108), // 196
-                               new RGB(84, 84, 84), // 13
-                               new RGB(72, 72, 72), // 169
-                               new RGB(52, 52, 52), // 198
-                               new RGB(24, 24, 24), // 199
-                               new RGB(4, 4, 8), // 112
-                               new RGB(168, 168, 168), // 14
-                               new RGB(132, 132, 132), // 195
-                               new RGB(108, 108, 108), // 196
-                               new RGB(84, 84, 84), // 13
-                               new RGB(72, 72, 72), // 169
-                               new RGB(52, 52, 52), // 198
-                               new RGB(24, 24, 24), // 199
-                               new RGB(4, 4, 8), // 112        
+                               new RGB(93, 194, 165), // 0
+                               new RGB(93, 194, 165), // 1
+                               new RGB(85, 178, 153), // 2
+                               new RGB(85, 178, 153), // 3
+                               new RGB(76, 161, 137), // 4
+                               new RGB(68, 145, 125), // 5
+                               new RGB(64, 133, 117), // 6
+                               new RGB(56, 117, 109), // 7
+                               new RGB(28, 109, 97), // 8
+                               new RGB(24, 89, 76), // 9
+                               new RGB(24, 89, 76), // 10
+                               new RGB(28, 64, 64), // 11
+                               new RGB(12, 52, 52), // 12
+                               new RGB(12, 52, 52), // 13
+                               new RGB(0, 32, 32), // 14
+                               new RGB(0, 32, 32), // 15   
                             }));
+
             ColorRemaps.Add("Brown", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
                 new RGB[] {
-                // RemapIndexes=146,152,209,151,173,150,173,183,146,152,209,151,173,150,173,183
-                               new RGB(180, 144, 80), // 146
-                               new RGB(164, 120, 88), // 152
-                               new RGB(168, 172, 76), // 209
-                               new RGB(128, 92, 72), // 151
-                               new RGB(112, 84, 8), // 173
-                               new RGB(104, 76, 56), // 150
-                               new RGB(112, 84, 8), // 173
-                               new RGB(16, 12, 4), // 183
-                               new RGB(180, 144, 80), // 146
-                               new RGB(164, 120, 88), // 152
-                               new RGB(168, 172, 76), // 209
-                               new RGB(84, 84, 84), // 151
-                               new RGB(112, 84, 8), // 173
-                               new RGB(104, 76, 56), // 150
-                               new RGB(112, 84, 8), // 173
-                               new RGB(16, 12, 4), // 183      
-                            }));
-
-            ColorRemaps.Add("Fire", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
-                new RGB[] {
-                // RemapIndexes=5,149,25,27,29,175,47,12,24,26,28,30,31,31,44,46
-                               new RGB(252, 252, 84), // 5
-                               new RGB(252, 208, 72), // 149
-                               new RGB(228, 148, 48), // 25
-                               new RGB(196, 96, 0), // 27
-                               new RGB(164, 56, 0), // 29
-                               new RGB(128, 16, 0), // 175
-                               new RGB(16, 0, 0), // 47
-                               new RGB(0, 0, 0), // 12
-                               new RGB(236, 172, 72), // 24
-                               new RGB(212, 120, 16), // 26
-                               new RGB(180, 72, 0), // 28
-                               new RGB(152, 40, 0), // 30
-                               new RGB(136, 24, 0), // 31
-                               new RGB(136, 24, 0), // 31
-                               new RGB(96, 16, 0), // 44
-                               new RGB(98, 8, 0), // 46      
-                            }));
-            ColorRemaps.Add("WarmSilver", Palette.Load_With_Remaps("data/temperate/temperat.pal", ShadowIndex,
-                new RGB[] {
-                // RemapIndexes=192,164,132,155,133,197,112,12,163,132,155,133,134,197,154,198
-                               new RGB(216, 216, 216), // 192
-                               new RGB(216, 208, 192), // 164
-                               new RGB(176, 164, 132), // 132
-                               new RGB(160, 144, 124), // 155
-                               new RGB(144, 128, 116), // 133
-                               new RGB(84, 84, 84), // 197
-                               new RGB(4, 4, 8), // 112
-                               new RGB(0, 0, 0), // 12
-                               new RGB(208, 196, 172), // 163
-                               new RGB(176, 164, 132), // 132
-                               new RGB(160, 144, 124), // 155
-                               new RGB(144, 128, 116), // 133
-                               new RGB(116, 100, 100), // 134
-                               new RGB(84, 84, 84), // 197
-                               new RGB(64, 64, 64), // 154
-                               new RGB(52, 52, 52), // 198    
+                               new RGB(210, 153, 125), // 0
+                               new RGB(210, 153, 125), // 1
+                               new RGB(194, 137, 105), // 2
+                               new RGB(182, 113, 85), // 3
+                               new RGB(174, 93, 68), // 4
+                               new RGB(174, 93, 68), // 5
+                               new RGB(153, 76, 56), // 6
+                               new RGB(133, 64, 48), // 7
+                               new RGB(113, 44, 36), // 8
+                               new RGB(113, 44, 36), // 9
+                               new RGB(97, 36, 28), // 10
+                               new RGB(93, 8, 0), // 11
+                               new RGB(76, 0, 0), // 12
+                               new RGB(76, 0, 0), // 13
+                               new RGB(56, 0, 0), // 14
+                               new RGB(56, 0, 0), // 15   
                             }));
         }
     }
