@@ -236,23 +236,18 @@ namespace RAFullMapPreviewGenerator
             if (CivilianRemaps.ContainsKey(inf.Name))
             {
                 CivilianRemaps.TryGetValue(inf.Name, out InfPal);
+
+                inf.Name = Get_Correct_Civilian_Image(inf.Name);
             }
             else
             {
                 InfPal = Remap_For_House(inf.Side, ColorScheme.Secondary);
             }
 
-            if (inf.Name == "c2" || inf.Name == "c5" || inf.Name == "c4" ||
-                inf.Name == "c6" || inf.Name == "c7" || inf.Name == "c8" || inf.Name == "c9" || inf.Name == "c10")
-            {
-                inf.Name = "c1";
-            }
-            else if (inf.Name == "c3")
+            if (inf.Name == "c3")
             {
                 inf.Name = "c2";
             }
-
-            inf.Name = "c2";
 
             ShpReader InfShp = ShpReader.Load(General_File_String_From_Name(inf.Name));
 
@@ -263,6 +258,21 @@ namespace RAFullMapPreviewGenerator
             Sub_Cell_Pixel_Offsets(inf.SubCell, out subX, out subY);
 
             g.DrawImage(TempBitmap, inf.X * CellSize + subX, inf.Y * CellSize + subY, TempBitmap.Width, TempBitmap.Height);
+        }
+
+        string Get_Correct_Civilian_Image(string Name)
+        {
+            string RetName = null;
+            if (Name == "c2" || Name == "c6" || Name == "c7" || Name == "c8" || Name == "c9" || Name == "c10")
+            {
+                RetName = "c1";
+            }
+            else if (Name == "c3" || Name == "c4" || Name == "c5")
+            {
+                RetName = "c2";
+            }
+
+            return RetName;
         }
 
         void Draw_Ships(Graphics g)
@@ -1498,7 +1508,7 @@ namespace RAFullMapPreviewGenerator
             CivilianRemaps.Add("c2", C2Pal);
 
             Palette C4Pal = Palette.Load("data/temperate/temperat.pal", ShadowIndex);
-            C4Pal.Set_RGB(7, new RGB(174, 93, 68)); // 187
+            C4Pal.Set_RGB(7, new RGB(28, 109, 97)); // 187
             C4Pal.Set_RGB(109, new RGB(133, 113, 101)); // 118
             C4Pal.Set_RGB(111, new RGB(113, 89, 80)); // 119
             C4Pal.Set_RGB(206, new RGB(24, 89, 76)); // 188
@@ -1553,7 +1563,7 @@ namespace RAFullMapPreviewGenerator
 
             Palette C10Pal = Palette.Load("data/temperate/temperat.pal", ShadowIndex);
             C10Pal.Set_RGB(7, new RGB(113, 113, 113)); // 137
-            C10Pal.Set_RGB(14, new RGB(0, 170, 170)); // 2
+            C10Pal.Set_RGB(14, new RGB(255, 255, 255)); // 15
             C10Pal.Set_RGB(118, new RGB(230, 230, 230)); // 129
             C10Pal.Set_RGB(119, new RGB(190, 190, 190)); // 131
             C10Pal.Set_RGB(159, new RGB(113, 113, 113)); // 137
