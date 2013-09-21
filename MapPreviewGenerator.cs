@@ -189,8 +189,8 @@ namespace RAFullMapPreviewGenerator
             foreach (WaypointStruct wp in Waypoints)
             {
                 string text = wp.Number.ToString();
-                int X_Adjust = 8;
-                if (text.Length == 2) X_Adjust = 4;
+                int X_Adjust = 9;
+                if (text.Length == 2) X_Adjust = 5;
 
                 Draw_Text(g, wp.Number.ToString(), new Font("Thaoma", 8), Brushes.GreenYellow,
                     (TemplateReader.TileSize * wp.X) + X_Adjust, (wp.Y * TemplateReader.TileSize) + 6);
@@ -214,8 +214,8 @@ namespace RAFullMapPreviewGenerator
         void Draw_Rectangle(Graphics g, int x, int y)
         {
             Pen p = new Pen(Brushes.GreenYellow, 0.1f);
-            g.DrawRectangle(p, x * TemplateReader.TileSize, y * TemplateReader.TileSize,
-                TemplateReader.TileSize, TemplateReader.TileSize);
+            g.DrawRectangle(p, x * TemplateReader.TileSize + 1, y * TemplateReader.TileSize + 1,
+                TemplateReader.TileSize -1, TemplateReader.TileSize - 1);
         }
 
         void Draw_Infantries(Graphics g)
