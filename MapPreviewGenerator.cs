@@ -24,6 +24,7 @@ namespace RAFullMapPreviewGenerator
         CellStruct[,] Cells = new CellStruct[128, 128];
         List<WaypointStruct> Waypoints = new List<WaypointStruct>();
         List<UnitInfo> Units = new List<UnitInfo>();
+        List<ShipInfo> Ships = new List<ShipInfo>();
         List<InfantryInfo> Infantries = new List<InfantryInfo>();
         List<SmudgeInfo> Smudges = new List<SmudgeInfo>();
         List<StructureInfo> Structures = new List<StructureInfo>();
@@ -57,6 +58,7 @@ namespace RAFullMapPreviewGenerator
             Parse_Smudges();
             Parse_Units();
             Parse_Infantry();
+            Parse_Ships();
             Parse_Structures();
 
             for (int x = 0; x < 128; x++)
@@ -95,6 +97,7 @@ namespace RAFullMapPreviewGenerator
             Draw_Structures(g);
             Draw_Units(g);
             Draw_Infantries(g);
+            Draw_Ships(g);
 
             for (int y = 0; y < 128; y++)
             {
@@ -239,6 +242,53 @@ namespace RAFullMapPreviewGenerator
             g.DrawImage(TempBitmap, inf.X * CellSize + subX, inf.Y * CellSize + subY, TempBitmap.Width, TempBitmap.Height);
         }
 
+        void Draw_Ships(Graphics g)
+        {
+            foreach (ShipInfo sh in Ships)
+            {
+                Draw_Ship(sh, g);
+            }
+
+        }
+
+        void Draw_Ship(ShipInfo sh, Graphics g)
+        {
+            string Name = sh.Name;
+            ShpReader ShipShp = ShpReader.Load(General_File_String_From_Name(Name));
+
+            Palette Remap = /*Remap_For_House(u.Side, ColorScheme.Secondary)*/ Pal;
+
+            int Frame = -1;
+            Frame = Frame_From_Ship_Angle(sh.Angle);
+
+            Bitmap ShipBitmap = RenderUtils.RenderShp(ShipShp, Remap,
+                Frame);
+
+            int CenterX = (sh.X * CellSize) + 12 - (ShipBitmap.Width / 2);
+            int CenterY = (sh.Y * CellSize) + 12 - (ShipBitmap.Height / 2);
+
+            g.DrawImage(ShipBitmap, CenterX, CenterY, ShipBitmap.Width, ShipBitmap.Height);
+
+            // Draw vehicle turret
+            if (Has_Turret(Name))
+            {
+                int AdjustX = 0; int AdjustY = 0;
+                Get_Turret_Adjustment(Name, sh.Angle, out AdjustX, out AdjustY);
+
+                Bitmap TurretBitmap = null;
+
+                ShpReader SSAMShp = ShpReader.Load(General_File_String_From_Name("ssam"));
+
+                TurretBitmap = RenderUtils.RenderShp(SSAMShp, Remap,
+                        Frame_From_Unit_Angle(sh.Angle));
+
+                int TurretCenterX = (sh.X * CellSize) + 12 - (TurretBitmap.Width / 2);
+                int TurretCenterY = (sh.Y * CellSize) + 12 - (TurretBitmap.Height / 2);
+
+                g.DrawImage(TurretBitmap, TurretCenterX - AdjustX, TurretCenterY + AdjustY, TurretBitmap.Width, TurretBitmap.Height);
+            }
+        }
+
         void Draw_Units(Graphics g)
         {
             foreach (UnitInfo u in Units)
@@ -250,14 +300,24 @@ namespace RAFullMapPreviewGenerator
 
         void Draw_Unit(UnitInfo u, Graphics g)
         {
-            string Name = u.Name.ToLower();
+            string Name = u.Name;
             ShpReader UnitShp = ShpReader.Load(General_File_String_From_Name(u.Name));
 
             Palette Remap = /*Remap_For_House(u.Side, ColorScheme.Secondary)*/ Pal;
 
+            int Frame = -1;
+
+            if (Name == "ant1" || Name == "ant2" || Name == "ant3")
+            {
+                Frame = Frame_From_Infantry_Angle(u.Angle);
+            }
+            else
+            {
+                Frame = Frame_From_Unit_Angle(u.Angle);
+            }
 
             Bitmap UnitBitmap = RenderUtils.RenderShp(UnitShp, Remap,
-                Frame_From_Unit_Angle(u.Angle));
+                Frame);
 
             int CenterX = (u.X * CellSize) + 12 - (UnitBitmap.Width / 2);
             int CenterY = (u.Y * CellSize) + 12 - (UnitBitmap.Height / 2);
@@ -265,19 +325,90 @@ namespace RAFullMapPreviewGenerator
             g.DrawImage(UnitBitmap, CenterX, CenterY, UnitBitmap.Width, UnitBitmap.Height);
 
             // Draw vehicle turret
-/*            if (Has_Turret(Name))
+            if (Has_Turret(Name))
             {
                 int AdjustX = 0; int AdjustY = 0;
                 Get_Turret_Adjustment(Name, u.Angle, out AdjustX, out AdjustY);
 
-                Bitmap TurretBitmap = RenderUtils.RenderShp(UnitShp, Remap,
-                    Frame_From_Unit_Angle(u.Angle) + 32);
+                Bitmap TurretBitmap = null;
+
+                if (Name == "stnk")
+                {
+                    ShpReader SSAMShp = ShpReader.Load(General_File_String_From_Name("ssam"));
+
+                    TurretBitmap = RenderUtils.RenderShp(SSAMShp, Remap,
+                        Frame_From_Unit_Angle(u.Angle));
+                }
+                else
+                {
+                    TurretBitmap = RenderUtils.RenderShp(UnitShp, Remap,
+                        Frame_From_Unit_Angle(u.Angle) + 32);
+                }
 
                 int TurretCenterX = (u.X * CellSize) + 12 - (TurretBitmap.Width / 2);
                 int TurretCenterY = (u.Y * CellSize) + 12 - (TurretBitmap.Height / 2);
 
-                g.DrawImage(TurretBitmap, TurretCenterX - AdjustX, TurretCenterY + AdjustY, UnitBitmap.Width, UnitBitmap.Height);
-            } */
+                g.DrawImage(TurretBitmap, TurretCenterX - AdjustX, TurretCenterY + AdjustY, TurretBitmap.Width, TurretBitmap.Height);
+            }
+        }
+
+        bool Has_Turret(string Name)
+        {
+            switch (Name)
+            {
+                case "1tnk":
+                case "2tnk":
+                case "3tnk":
+                case "4tnk":
+                case "jeep":
+                case "ttnk":
+                case "stnk":
+                case "mgg":
+                case "mrj":
+                    return true;
+
+                default: return false;
+            }
+        }
+
+        void Get_Turret_Adjustment(string Name, int Angle, out int AdjustX, out int AdjustY)
+        {
+            int OffsetX = 0;
+            int OffsetY = 0;
+
+            switch (Name)
+            {
+                case "mlrs":
+                    OffsetY = 3;
+                    OffsetX = -1;
+                    break;
+                case "msam":
+                    OffsetY = 5;
+                    OffsetX = -1;
+                    break;
+                default: break;
+            }
+
+            AdjustX = Get_2D_Rotation_X(OffsetX, OffsetY, Angle);
+            AdjustY = Get_2D_Rotation_Y(OffsetX, OffsetY, Angle);
+        }
+
+        int Get_2D_Rotation_X(int OffsetX, int OffsetY, int Angle)
+        {
+            double RadAngle = (((double)Angle) * 1.40625) * (Math.PI / 180.0);
+
+            double Result = OffsetX * Math.Cos(RadAngle) + OffsetY * Math.Sin(RadAngle);
+            int Rounded = (int)Math.Round(Result, 0);
+            return Rounded;
+        }
+
+        int Get_2D_Rotation_Y(int OffsetX, int OffsetY, int Angle)
+        {
+            double RadAngle = (((double)Angle) * 1.40625) * (Math.PI / 180.0);
+
+            double Result = OffsetX * Math.Sin(RadAngle) + OffsetY * Math.Cos(RadAngle);
+            int Rounded = (int)Math.Round(Result, 0);
+            return Rounded;
         }
 
 
@@ -301,7 +432,7 @@ namespace RAFullMapPreviewGenerator
             ShpReader StructShp = ShpReader.Load(FileName);
 
             int Frame = Frame_From_Building_HP(s);
-            if (s.Name.ToLower() == "gun") Frame += Frame_From_Unit_Angle(s.Angle);
+            if (s.Name == "gun" || s.Name == "agun") Frame += Frame_From_Unit_Angle(s.Angle);
 
             Bitmap StructBitmap = RenderUtils.RenderShp(StructShp, /*Remap_For_House(s.Side, ColorScheme.Primary)*/ Pal,
                 Frame);
@@ -459,6 +590,33 @@ namespace RAFullMapPreviewGenerator
             }
         }
 
+        void Parse_Ships()
+        {
+            var SectionShips = MapINI.getSectionContent("Ships");
+            if (SectionShips != null)
+            {
+                foreach (KeyValuePair<string, string> entry in SectionShips)
+                {
+                    string ShipCommaString = entry.Value;
+                    string[] ShipData = ShipCommaString.Split(',');
+
+                    ShipInfo sh = new ShipInfo();
+                    sh.Name = ShipData[1].ToLower();
+                    sh.Side = ShipData[0];
+                    sh.Angle = int.Parse(ShipData[4]);
+
+                    int CellIndex = int.Parse(ShipData[3]);
+                    sh.Y = CellIndex / 128;
+                    sh.X = CellIndex % 128;
+
+                    Ships.Add(sh);
+
+                    //                   Console.WriteLine("Unit name = {0}, side {1}, Angle = {2}, X = {3}, Y = {4}", u.Name,
+                    //                     u.Side, u.Angle, u.X, u.Y);
+                }
+            }
+        }
+
         void Parse_Structures()
         {
             var SectionStructures = MapINI.getSectionContent("Structures");
@@ -565,7 +723,7 @@ namespace RAFullMapPreviewGenerator
                     string[] UnitData = UnitCommaString.Split(',');
 
                     UnitInfo u = new UnitInfo();
-                    u.Name = UnitData[1];
+                    u.Name = UnitData[1].ToLower();
                     u.Side = UnitData[0];
                     u.Angle = int.Parse(UnitData[4]);
 
@@ -905,6 +1063,32 @@ namespace RAFullMapPreviewGenerator
             return -1;
         }
 
+        int Frame_From_Ship_Angle(int Angle)
+        {
+            //            Console.WriteLine("Angle = {0}", Angle);
+
+            if (Angle == 0) { return 0; }
+
+            if (Angle > 240) { return 0; }
+            if (Angle > 224) { return 1; }
+            if (Angle > 208) { return 2; }
+            if (Angle > 192) { return 3; }
+            if (Angle > 176) { return 4; }
+            if (Angle > 160) { return 5; }
+            if (Angle > 144) { return 6; }
+            if (Angle > 128) { return 7; }
+            if (Angle > 112) { return 8; }
+            if (Angle > 96) { return 9; }
+            if (Angle > 80) { return 10; }
+            if (Angle > 64) { return 11; }
+            if (Angle > 48) { return 12; }
+            if (Angle > 32) { return 13; }
+            if (Angle > 16) { return 14; }
+            if (Angle > 0) { return 15; }
+
+            return -1;
+        }
+
         void Sub_Cell_Pixel_Offsets(int SubCell, out int X, out int Y)
         {
             X = -19; Y = -9;
@@ -1018,38 +1202,44 @@ namespace RAFullMapPreviewGenerator
 
         static void Load_Building_Damage_Frames()
         {
-            // the GUN turret building requires special logic as it 
-            // might make use of the angle property
-
-            BuildingDamageFrames.Add("afld", 16);
-            BuildingDamageFrames.Add("arco", 1);
-            BuildingDamageFrames.Add("atwr", 1);
+            BuildingDamageFrames.Add("hbox", 2);
+            BuildingDamageFrames.Add("mslo", 8);
+            BuildingDamageFrames.Add("iron", 11);
+            BuildingDamageFrames.Add("fcom", 1);
+            BuildingDamageFrames.Add("atek", 1);
+            BuildingDamageFrames.Add("pdox", 29);
+            BuildingDamageFrames.Add("syrd", 1);
+            BuildingDamageFrames.Add("pbox", 1);
+            BuildingDamageFrames.Add("tsla", 10);
+            BuildingDamageFrames.Add("agun", 64);
+            BuildingDamageFrames.Add("ftur", 1);
+            BuildingDamageFrames.Add("gap", 32);
+            BuildingDamageFrames.Add("powr", 1);
+            BuildingDamageFrames.Add("apwr", 1);
+            BuildingDamageFrames.Add("stek", 1);
+            BuildingDamageFrames.Add("barr", 10);
+            BuildingDamageFrames.Add("tent", 10);
+            BuildingDamageFrames.Add("kenn", 1);
+            BuildingDamageFrames.Add("afld", 8);
             BuildingDamageFrames.Add("bio", 1);
-            BuildingDamageFrames.Add("eye", 16);
-            BuildingDamageFrames.Add("fact", 24);
+            BuildingDamageFrames.Add("fact", 26);
             BuildingDamageFrames.Add("fix", 7);
-            BuildingDamageFrames.Add("gtwr", 1);
             BuildingDamageFrames.Add("gun", 64);
-            BuildingDamageFrames.Add("hand", 1);
             BuildingDamageFrames.Add("hosp", 4);
             BuildingDamageFrames.Add("hpad", 7);
-            BuildingDamageFrames.Add("hq", 16);
             BuildingDamageFrames.Add("miss", 1);
-            BuildingDamageFrames.Add("nuk2", 4);
-            BuildingDamageFrames.Add("nuke", 4);
-            BuildingDamageFrames.Add("obli", 4);
-            BuildingDamageFrames.Add("proc", 30);
-            BuildingDamageFrames.Add("pyle", 10);
-            BuildingDamageFrames.Add("sam", 64);
+            BuildingDamageFrames.Add("proc", 1);
+            BuildingDamageFrames.Add("sam", 34);
             BuildingDamageFrames.Add("silo", 5);
-            BuildingDamageFrames.Add("weap2", 10);
+            BuildingDamageFrames.Add("weap", 1);
+            BuildingDamageFrames.Add("weap2", 4);
             BuildingDamageFrames.Add("v01", 1);
             BuildingDamageFrames.Add("v02", 1);
             BuildingDamageFrames.Add("v03", 1);
-            BuildingDamageFrames.Add("v04", 1);
-            BuildingDamageFrames.Add("v05", 1);
+            BuildingDamageFrames.Add("v04", 2);
+            BuildingDamageFrames.Add("v05", 2);
             BuildingDamageFrames.Add("v06", 1);
-            BuildingDamageFrames.Add("v07", 1);
+            BuildingDamageFrames.Add("v07", 2);
             BuildingDamageFrames.Add("v08", 1);
             BuildingDamageFrames.Add("v09", 1);
             BuildingDamageFrames.Add("v10", 1);
@@ -1080,10 +1270,17 @@ namespace RAFullMapPreviewGenerator
             BuildingDamageFrames.Add("v35", 1);
             BuildingDamageFrames.Add("v36", 1);
             BuildingDamageFrames.Add("v37", 1);
-            BuildingDamageFrames.Add("tmpl", 5);
         }
     }
 
+    struct ShipInfo
+    {
+        public string Name;
+        public string Side;
+        public int Angle;
+        public int X;
+        public int Y;
+    }
 
     struct UnitInfo
     {
