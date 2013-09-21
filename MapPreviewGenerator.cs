@@ -63,6 +63,7 @@ namespace RAFullMapPreviewGenerator
             Parse_Ships();
             Parse_Structures();
             Parse_Base();
+            Parse_Cell_Triggers();
 
             for (int x = 0; x < 128; x++)
             {
