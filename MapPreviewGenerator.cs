@@ -74,6 +74,11 @@ namespace RAFullMapPreviewGenerator
                 {
                     int Index = (x * 128) + y;
                     Cells[y, x] = Raw[Index];
+
+                    if (Is_Out_Of_Bounds(y, x))
+                    {
+                        Cells[y, x].IsOutOfBounds = true;
+                    }
                 }
             }
         }
@@ -89,6 +94,11 @@ namespace RAFullMapPreviewGenerator
                 for (int x = 0; x < 128; x++)
                 {
                     CellStruct data = Cells[x, y];
+
+                    if (OnlyDrawVisible && data.IsOutOfBounds)
+                    {
+                        continue;
+                    }
 
                     Draw_Template(data, g, x, y);
 
@@ -109,6 +119,11 @@ namespace RAFullMapPreviewGenerator
                 {
                     CellStruct data = Cells[x, y];
 
+                    if (OnlyDrawVisible && data.IsOutOfBounds)
+                    {
+                        continue;
+                    }
+
                     if (data.Terrain != null)
                     {
                         Draw_Terrain(data, g, x, y);
@@ -124,14 +139,17 @@ namespace RAFullMapPreviewGenerator
             Draw_Cell_Triggers(g);
             Draw_Waypoints(g);
 
-
-            for (int y = 0; y < 128; y++)
+            if (OnlyDrawVisible == false)
             {
-                for (int x = 0; x < 128; x++)
+                for (int y = 0; y < 128; y++)
                 {
-                    if (Is_Out_Of_Bounds(x, y))
+                    for (int x = 0; x < 128; x++)
                     {
-                        Draw_Out_Of_Bounds(g, x, y);
+                        CellStruct data = Cells[x,y];
+                        if (data.IsOutOfBounds/* Is_Out_Of_Bounds(x, y) */)
+                        {
+                            Draw_Out_Of_Bounds(g, x, y);
+                        }
                     }
                 }
             }
@@ -140,6 +158,8 @@ namespace RAFullMapPreviewGenerator
             {
                 bitMap = Get_In_Bounds_Region(bitMap);
             }
+
+            RenderUtils.Clear_Caches();
 
             return bitMap;
         }
@@ -482,6 +502,11 @@ namespace RAFullMapPreviewGenerator
                 0);
 
             Draw_Image_With_Opacity(g, BaseStructBitmap, bs.X * CellSize, bs.Y * CellSize);
+
+            if (bs.IsFake)
+            {
+                Draw_Fake_Text(g, BaseStructBitmap, bs.X, bs.Y);
+            }
         }
 
         void Draw_Image_With_Opacity(Graphics g, Bitmap bitmap, int X, int Y)
@@ -528,11 +553,16 @@ namespace RAFullMapPreviewGenerator
 
             if (s.IsFake)
             {
-                int CenterX = (s.X * CellSize) + (StructBitmap.Width / 2);
-                int CenterY = (s.Y * CellSize) + (StructBitmap.Height / 2);
-
-                Draw_Text(g, "FAKE", new Font("Thaoma", 10), Brushes.White, CenterX - 20, CenterY - 8);
+                Draw_Fake_Text(g, StructBitmap, s.X, s.Y);
             }
+        }
+
+        private void Draw_Fake_Text(Graphics g, Bitmap bitmap, int X, int Y)
+        {
+            int CenterX = (X * CellSize) + (bitmap.Width / 2);
+            int CenterY = (Y * CellSize) + (bitmap.Height / 2);
+
+            Draw_Text(g, "FAKE", new Font("Thaoma", 10), Brushes.White, CenterX - 20, CenterY - 8);
         }
 
         void Draw_Bibs(Graphics g)
@@ -764,6 +794,7 @@ namespace RAFullMapPreviewGenerator
                         bs2.Name = "weap2";
                         bs2.X = bs.X;
                         bs2.Y = bs.Y;
+                        bs2.IsFake = true;
 
                         BaseStructures.Add(bs2);
                     }
@@ -1870,6 +1901,7 @@ namespace RAFullMapPreviewGenerator
         public string Name;
         public int X;
         public int Y;
+        public bool IsFake;
     }
 
     struct BibInfo
@@ -1921,6 +1953,7 @@ namespace RAFullMapPreviewGenerator
 
     struct CellStruct
     {
+        public bool IsOutOfBounds;
         public int Template;
         public int Tile;
         public string Overlay;

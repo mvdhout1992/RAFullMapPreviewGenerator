@@ -64,6 +64,22 @@ namespace RAFullMapPreviewGenerator
 
         public static Bitmap RenderTemplate(TemplateReader template, Palette p, int frame)
         {
+            if (RenderUtils.TemplateTileCache.ContainsKey(template))
+            {
+                Bitmap[] Frames = null;
+                RenderUtils.TemplateTileCache.TryGetValue(template, out Frames);
+
+                if (Frames[frame] != null)
+                {
+                    return Frames[frame];
+                }
+            }
+            else
+            {
+                Bitmap[] TemplateBitmaps = new Bitmap[50];
+                RenderUtils.TemplateTileCache.Add(template, TemplateBitmaps);
+            }
+
             var bitmap = new Bitmap(TemplateReader.TileSize, TemplateReader.TileSize,
                 PixelFormat.Format8bppIndexed);
 
@@ -94,11 +110,22 @@ namespace RAFullMapPreviewGenerator
 
             bitmap.UnlockBits(data);
 
+            Bitmap[] TemplateArray = null;
+            TemplateTileCache.TryGetValue(template, out TemplateArray);
+            TemplateArray[frame] = bitmap;
+
             return bitmap;
         }
 
         public static Bitmap RenderTemplate(TemplateReader template, Palette p)
         {
+            if (RenderUtils.TemplateCache.ContainsKey(template))
+            {
+                Bitmap Ret = null;
+                RenderUtils.TemplateCache.TryGetValue(template, out Ret);
+                return Ret;
+            }
+
             var bitmap = new Bitmap(TemplateReader.TileSize * template.Width, TemplateReader.TileSize * template.Height,
                 PixelFormat.Format8bppIndexed);
 
@@ -130,7 +157,16 @@ namespace RAFullMapPreviewGenerator
             }
 
             bitmap.UnlockBits(data);
+
+            TemplateCache.Add(template, bitmap);
+
             return bitmap;
+        }
+        public static void Clear_Caches()
+        {
+            ShpFramesCache.Clear();
+            TemplateCache.Clear();
+            TemplateTileCache.Clear();
         }
 
     }
