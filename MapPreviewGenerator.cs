@@ -369,6 +369,8 @@ namespace RAFullMapPreviewGenerator
             {
                 case "dd":
                     Get_Destroyer_Turret_Adjustments(Frame, out AdjustX, out AdjustY); break;
+                case "pt":
+                    Get_Gunboat_Turret_Adjustments(Frame, out AdjustX, out AdjustY); break;
                 default: break;
             }
 
@@ -396,6 +398,33 @@ namespace RAFullMapPreviewGenerator
                 case 26: AdjustX = -7; AdjustY = -2; break;
                 case 28: AdjustX = -6; AdjustY = -1; break;
                 case 30: AdjustX = -4; AdjustY = -2; break;
+
+                default: break;
+            }
+        }
+
+        void Get_Gunboat_Turret_Adjustments(int Frame, out int AdjustX, out int AdjustY)
+        {
+            AdjustX = 0; AdjustY = 0;
+
+            switch (Frame)
+            {
+                case 0: AdjustX = -1; AdjustY = -6; break;
+                case 2: AdjustX = -6; AdjustY = -5; break;
+                case 4: AdjustX = -10; AdjustY = -4; break;
+                case 6: AdjustX = -13; AdjustY = -2; break;
+                case 8: AdjustX = -13; AdjustY = 1; break;
+                case 10: AdjustX = -14; AdjustY = 4; break;
+                case 12: AdjustX = -10; AdjustY = 6; break;
+                case 14: AdjustX = -7; AdjustY = 9; break;
+                case 16: AdjustX = -1; AdjustY = 8; break;
+                case 18: AdjustX = 6; AdjustY = 8; break;
+                case 20: AdjustX = 10; AdjustY = 7; break;
+                case 22: AdjustX = 12; AdjustY = 4; break;
+                case 24: AdjustX = 13; AdjustY = 1; break;
+                case 26: AdjustX = 12; AdjustY = -2; break;
+                case 28: AdjustX = 9; AdjustY = -4; break;
+                case 30: AdjustX = 5; AdjustY = -6; break;
 
                 default: break;
             }
