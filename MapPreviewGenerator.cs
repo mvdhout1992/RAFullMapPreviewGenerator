@@ -380,9 +380,114 @@ namespace RAFullMapPreviewGenerator
                 case "ca":
                     if (SecondTurret) { Get_Cruiser_Second_Turret_Adjustments(Frame, out AdjustX, out AdjustY); break; }
                     else { Get_Cruiser_First_Turret_Adjustments(Frame, out AdjustX, out AdjustY); break; }
+                case "mrj":
+                    Get_Mobile_Radar_Jammer_Turret_Adjustments(Frame, out AdjustX, out AdjustY);
+                    Frame = 32; 
+                    break;
+                case "mgg":
+                    Get_Mobile_Gap_Generator_Turret_Adjustments(Frame, out AdjustX, out AdjustY);
+                    Frame /= 4; 
+                    break;
                 default: break;
             }
 
+        }
+
+        void Get_Mobile_Gap_Generator_Turret_Adjustments(int Frame, out int AdjustX, out int AdjustY)
+        {
+            AdjustX = 0; AdjustY = 0;
+
+            switch (Frame)
+            {
+                case 0:
+                case 1:
+                case 2: 
+                    AdjustX = 0; AdjustY = 3; break;
+                case 3: 
+                case 4: 
+                case 5: 
+                    AdjustX = 3; AdjustY = 1; break;
+                case 6:
+                case 7: 
+                case 8: 
+                    AdjustX = 3; AdjustY = -2; break;
+                case 9:
+                case 10: 
+                case 11: 
+                    AdjustX = 4; AdjustY = -2; break;
+                case 12:
+                case 13:
+                case 14: 
+                    AdjustX = 5; AdjustY = -6; break;
+                case 15: 
+                case 16: 
+                case 17: 
+                    AdjustX = -1; AdjustY = -6; break;
+                case 18: 
+                case 19: 
+                case 20: 
+                    AdjustX = -5; AdjustY = -5; break;
+                case 21:
+                case 22:
+                case 23: 
+                    AdjustX = -7; AdjustY = -3; break;
+                case 24:
+                case 25:
+                case 26: 
+                    AdjustX = -8; AdjustY = -1; break;
+                case 27:
+                case 28: 
+                case 29: 
+                    AdjustX = -6; AdjustY = 2; break;
+                case 30:
+                case 31: 
+                    AdjustX = -3; AdjustY = 3; break;
+
+                default: break;
+            }
+        }
+
+        void Get_Mobile_Radar_Jammer_Turret_Adjustments(int Frame, out int AdjustX, out int AdjustY)
+        {
+            AdjustX = 0; AdjustY = 0;
+
+            switch (Frame-32)
+            {
+                case 0: AdjustX = 0; AdjustY = -2; break;
+                case 1: AdjustX = -2; AdjustY = 0; break;
+                case 2: AdjustX = -3; AdjustY = 0; break;
+                case 3: AdjustX = -5; AdjustY = 0; break;
+                case 4: AdjustX = -6; AdjustY = 0; break;
+                case 5: AdjustX = -8; AdjustY = -2; break;
+                case 6: AdjustX = 0; AdjustY = -2; break;
+                case 7: AdjustX = 0; AdjustY = -2; break;
+                case 8: AdjustX = 0; AdjustY = -5; break;
+                case 9: AdjustX = 0; AdjustY = 0; break;
+                case 10: AdjustX = 0; AdjustY = 0; break;
+                case 11: AdjustX = 0; AdjustY = 0; break;
+                case 12: AdjustX = 0; AdjustY = 0; break;
+                case 13: AdjustX = 0; AdjustY = 0; break;
+                case 14: AdjustX = 0; AdjustY = 0; break;
+                case 15: AdjustX = 0; AdjustY = 0; break;
+                case 16: AdjustX = 0; AdjustY = 0; break;
+                case 17: AdjustX = 0; AdjustY = 0; break;
+                case 18: AdjustX = 0; AdjustY = 0; break;
+                case 19: AdjustX = 0; AdjustY = 0; break;
+                case 20: AdjustX = 0; AdjustY = 0; break;
+                case 21: AdjustX = 0; AdjustY = 0; break;
+                case 22: AdjustX = 0; AdjustY = 0; break;
+                case 23: AdjustX = 0; AdjustY = 0; break;
+                case 24: AdjustX = 0; AdjustY = 0; break;
+                case 25: AdjustX = 0; AdjustY = 0; break;
+                case 26: AdjustX = 0; AdjustY = 0; break;
+                case 27: AdjustX = 0; AdjustY = 0; break;
+                case 28: AdjustX = 0; AdjustY = 0; break;
+                case 29: AdjustX = 0; AdjustY = 0; break;
+                case 30: AdjustX = 0; AdjustY = 0; break;
+                case 31: AdjustX = 0; AdjustY = 0; break;
+
+                default: break;
+            }
         }
 
         void Get_Cruiser_Second_Turret_Adjustments(int Frame, out int AdjustX, out int AdjustY)
@@ -512,8 +617,14 @@ namespace RAFullMapPreviewGenerator
                     break;
                 case "mgg":
                     TurretName = UnitName;
-                    Frame = 37;
+                    Frame = Frame_From_Unit_Angle(Angle);
                     break;
+
+                case "stnk":
+                    TurretName = UnitName;
+                    Frame = Frame_From_Unit_Angle(Angle) + 38;
+                    break;
+
                 case "pt":
                     TurretName = "mgun";
                     Frame = Frame_From_Unit_Angle(Angle);
@@ -524,7 +635,6 @@ namespace RAFullMapPreviewGenerator
                     Frame = Frame_From_Unit_Angle(Angle);
                     break;
 
-                case "stnk":
                 case "dd":
                     TurretName = "ssam";
                     Frame = Frame_From_Unit_Angle(Angle);
@@ -532,9 +642,8 @@ namespace RAFullMapPreviewGenerator
                 default: break;
             }
 
-
             ShpReader TurretShp = ShpReader.Load(General_File_String_From_Name(TurretName));
-            return RenderUtils.RenderShp(TurretShp, Remap, Frame);
+            return RenderUtils.RenderShp(TurretShp, Remap, UnitName == "mgg" ? 37 : Frame);
         }
 
         void Draw_Units(Graphics g)
