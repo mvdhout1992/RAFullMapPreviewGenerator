@@ -342,17 +342,23 @@ namespace RAFullMapPreviewGenerator
 
             if (Has_Turret(Name))
             {
-                Draw_Turret(g, ShipBitmap, sh.Name, sh.X, sh.Y, sh.Angle, Remap);
+                Draw_Turret(g, ShipBitmap, sh.Name, sh.X, sh.Y, sh.Angle, false, Remap);
+
+                if (Name == "ca")
+                {
+                    // Draw second turret for Cruiser
+                    Draw_Turret(g, ShipBitmap, sh.Name, sh.X, sh.Y, sh.Angle, true, Remap);
+                }
             }
         }
 
-        private void Draw_Turret(Graphics g, Bitmap UnitBitmap, string Name, int X, int Y, int Angle, Palette Remap)
+        private void Draw_Turret(Graphics g, Bitmap UnitBitmap, string Name, int X, int Y, int Angle, bool SecondTurret, Palette Remap)
         {
             int AdjustX = 0; int AdjustY = 0;
 
             int Frame = -1; 
             Bitmap TurretBitmap = Get_Turret_Bitmap(UnitBitmap, Name, Angle, Remap, out Frame);
-            Get_Turret_Adjustment(Name, Frame, out AdjustX, out AdjustY);
+            Get_Turret_Adjustment(Name, Frame, SecondTurret, out AdjustX, out AdjustY);
 
             int TurretCenterX = (X * CellSize) + 12  - (TurretBitmap.Width / 2);
             int TurretCenterY = (Y * CellSize) + 12  - (TurretBitmap.Height / 2);
@@ -360,7 +366,7 @@ namespace RAFullMapPreviewGenerator
             g.DrawImage(TurretBitmap, TurretCenterX + AdjustX, TurretCenterY + AdjustY, TurretBitmap.Width, TurretBitmap.Height);
         }
 
-        void Get_Turret_Adjustment(string Name, int Frame, out int AdjustX, out int AdjustY)
+        void Get_Turret_Adjustment(string Name, int Frame,  bool SecondTurret, out int AdjustX, out int AdjustY)
         {
             AdjustY = 0;
             AdjustX = 0;
@@ -371,9 +377,66 @@ namespace RAFullMapPreviewGenerator
                     Get_Destroyer_Turret_Adjustments(Frame, out AdjustX, out AdjustY); break;
                 case "pt":
                     Get_Gunboat_Turret_Adjustments(Frame, out AdjustX, out AdjustY); break;
+                case "ca":
+                    if (SecondTurret) { Get_Cruiser_Second_Turret_Adjustments(Frame, out AdjustX, out AdjustY); break; }
+                    else { Get_Cruiser_First_Turret_Adjustments(Frame, out AdjustX, out AdjustY); break; }
                 default: break;
             }
 
+        }
+
+        void Get_Cruiser_Second_Turret_Adjustments(int Frame, out int AdjustX, out int AdjustY)
+        {
+            AdjustX = 0; AdjustY = 0;
+
+            switch (Frame)
+            {
+                case 0: AdjustX = 0; AdjustY = 7; break;
+                case 2: AdjustX = 8; AdjustY = 6; break;
+                case 4: AdjustX = 15; AdjustY = 4; break;
+                case 6: AdjustX = 21; AdjustY = 1; break;
+                case 8: AdjustX = 20; AdjustY = -3; break;
+                case 10: AdjustX = 20; AdjustY = -8; break;
+                case 12: AdjustX = 16; AdjustY = -12; break;
+                case 14: AdjustX = 8; AdjustY = -13; break;
+                case 16: AdjustX = 0; AdjustY = -16; break;
+                case 18: AdjustX = -8; AdjustY = -13; break;
+                case 20: AdjustX = -14; AdjustY = -12; break;
+                case 22: AdjustX = -21; AdjustY = -8; break;
+                case 24: AdjustX = -21; AdjustY = -3; break;
+                case 26: AdjustX = -21; AdjustY = 2; break;
+                case 28: AdjustX = -15; AdjustY = 5; break;
+                case 30: AdjustX = -10; AdjustY = 8; break;
+
+                default: break;
+            }
+        }
+
+        void Get_Cruiser_First_Turret_Adjustments(int Frame, out int AdjustX, out int AdjustY)
+        {
+            AdjustX = 0; AdjustY = 0;
+
+            switch (Frame)
+            {
+                case 0: AdjustX = 0; AdjustY = -12; break;
+                case 2: AdjustX = -8; AdjustY = -12; break;
+                case 4: AdjustX = -14; AdjustY = -10; break;
+                case 6: AdjustX = -20; AdjustY = -8; break;
+                case 8: AdjustX = -21; AdjustY = -3; break;
+                case 10: AdjustX = -18; AdjustY = 1; break;
+                case 12: AdjustX = -14; AdjustY = 5; break;
+                case 14: AdjustX = -8; AdjustY = 8; break;
+                case 16: AdjustX = 0; AdjustY = 8; break;
+                case 18: AdjustX = 8; AdjustY = 8; break;
+                case 20: AdjustX = 13; AdjustY = 5; break;
+                case 22: AdjustX = 16; AdjustY = 2; break;
+                case 24: AdjustX = 18; AdjustY = -3; break;
+                case 26: AdjustX = 19; AdjustY = -7; break;
+                case 28: AdjustX = 15; AdjustY = -11; break;
+                case 30: AdjustX = 7; AdjustY = -12; break;
+
+                default: break;
+            }
         }
 
         void Get_Destroyer_Turret_Adjustments(int Frame, out int AdjustX, out int AdjustY)
@@ -512,7 +575,7 @@ namespace RAFullMapPreviewGenerator
             // Draw vehicle turret
             if (Has_Turret(Name))
             {
-                Draw_Turret(g, UnitBitmap, u.Name, u.X, u.Y, u.Angle, Remap);
+                Draw_Turret(g, UnitBitmap, u.Name, u.X, u.Y, u.Angle, false, Remap);
             }
         }
 
