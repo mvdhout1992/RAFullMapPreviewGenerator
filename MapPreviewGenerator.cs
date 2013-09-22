@@ -322,7 +322,15 @@ namespace RAFullMapPreviewGenerator
             Palette Remap = Remap_For_House(sh.Side, ColorScheme.Secondary);
 
             int Frame = -1;
-            Frame = Frame_From_Ship_Angle(sh.Angle);
+
+            if (Name != "lst" && Name != "carr")
+            {
+                Frame = Frame_From_Ship_Angle(sh.Angle);
+            }
+            else
+            {
+                Frame = 0;
+            }
 
             Bitmap ShipBitmap = RenderUtils.RenderShp(ShipShp, Remap,
                 Frame);
@@ -332,24 +340,109 @@ namespace RAFullMapPreviewGenerator
 
             g.DrawImage(ShipBitmap, CenterX, CenterY, ShipBitmap.Width, ShipBitmap.Height);
 
-            // Draw vehicle turret
             if (Has_Turret(Name))
             {
-                int AdjustX = 0; int AdjustY = 0;
-                Get_Turret_Adjustment(Name, sh.Angle, out AdjustX, out AdjustY);
-
-                Bitmap TurretBitmap = null;
-
-                ShpReader SSAMShp = ShpReader.Load(General_File_String_From_Name("ssam"));
-
-                TurretBitmap = RenderUtils.RenderShp(SSAMShp, Remap,
-                        Frame_From_Unit_Angle(sh.Angle));
-
-                int TurretCenterX = (sh.X * CellSize) + 12 - (TurretBitmap.Width / 2);
-                int TurretCenterY = (sh.Y * CellSize) + 12 - (TurretBitmap.Height / 2);
-
-                g.DrawImage(TurretBitmap, TurretCenterX - AdjustX, TurretCenterY + AdjustY, TurretBitmap.Width, TurretBitmap.Height);
+                Draw_Turret(g, ShipBitmap, sh.Name, sh.X, sh.Y, sh.Angle, Remap);
             }
+        }
+
+        private void Draw_Turret(Graphics g, Bitmap UnitBitmap, string Name, int X, int Y, int Angle, Palette Remap)
+        {
+            int AdjustX = 0; int AdjustY = 0;
+
+            int Frame = -1; 
+            Bitmap TurretBitmap = Get_Turret_Bitmap(UnitBitmap, Name, Angle, Remap, out Frame);
+            Get_Turret_Adjustment(Name, Frame, out AdjustX, out AdjustY);
+
+            int TurretCenterX = (X * CellSize) + 12  - (TurretBitmap.Width / 2);
+            int TurretCenterY = (Y * CellSize) + 12  - (TurretBitmap.Height / 2);
+
+            g.DrawImage(TurretBitmap, TurretCenterX + AdjustX, TurretCenterY + AdjustY, TurretBitmap.Width, TurretBitmap.Height);
+        }
+
+        void Get_Turret_Adjustment(string Name, int Frame, out int AdjustX, out int AdjustY)
+        {
+            AdjustY = 0;
+            AdjustX = 0;
+
+            switch (Name)
+            {
+                case "dd":
+                    Get_Destroyer_Turret_Adjustments(Frame, out AdjustX, out AdjustY); break;
+                default: break;
+            }
+
+        }
+
+        void Get_Destroyer_Turret_Adjustments(int Frame, out int AdjustX, out int AdjustY)
+        {
+            AdjustX = 0; AdjustY = 0;
+
+            switch (Frame)
+            {
+                case 0: AdjustX = 0; AdjustY = 0; break;
+                case 2: AdjustX = 2; AdjustY = 0; break;
+                case 4: AdjustX = 4; AdjustY = 0; break;
+                case 6: AdjustX = 5; AdjustY = -3; break;
+                case 8: AdjustX = 7; AdjustY = -3; break;
+                case 10: AdjustX = 7; AdjustY = -6; break;
+                case 12: AdjustX = 5; AdjustY = -8; break;
+                case 14: AdjustX = 2; AdjustY = -6; break;
+                case 16: AdjustX = 0; AdjustY = -6; break;
+                case 18: AdjustX = 0; AdjustY = -7; break;
+                case 20: AdjustX = -4; AdjustY = -8; break;
+                case 22: AdjustX = -7; AdjustY = -6; break;
+                case 24: AdjustX = -7; AdjustY = -4; break;
+                case 26: AdjustX = -7; AdjustY = -2; break;
+                case 28: AdjustX = -6; AdjustY = -1; break;
+                case 30: AdjustX = -4; AdjustY = -2; break;
+
+                default: break;
+            }
+        }
+
+        private Bitmap Get_Turret_Bitmap(Bitmap UnitBitmap, string UnitName, int Angle, Palette Remap, out int Frame)
+        {
+            string TurretName = null;
+            Frame = -1;
+
+            switch (UnitName)
+            {
+                case "1tnk":
+                case "2tnk":
+                case "3tnk":
+                case "4tnk":
+                case "jeep":
+                case "ttnk":
+                case "mrj":
+                    TurretName = UnitName;
+                    Frame = Frame_From_Unit_Angle(Angle) + 32;
+                    break;
+                case "mgg":
+                    TurretName = UnitName;
+                    Frame = 37;
+                    break;
+                case "pt":
+                    TurretName = "mgun";
+                    Frame = Frame_From_Unit_Angle(Angle);
+                    break;
+
+                case "ca":
+                    TurretName = "turr";
+                    Frame = Frame_From_Unit_Angle(Angle);
+                    break;
+
+                case "stnk":
+                case "dd":
+                    TurretName = "ssam";
+                    Frame = Frame_From_Unit_Angle(Angle);
+                    break;
+                default: break;
+            }
+
+
+            ShpReader TurretShp = ShpReader.Load(General_File_String_From_Name(TurretName));
+            return RenderUtils.RenderShp(TurretShp, Remap, Frame);
         }
 
         void Draw_Units(Graphics g)
@@ -390,33 +483,7 @@ namespace RAFullMapPreviewGenerator
             // Draw vehicle turret
             if (Has_Turret(Name))
             {
-                int AdjustX = 0; int AdjustY = 0;
-                Get_Turret_Adjustment(Name, u.Angle, out AdjustX, out AdjustY);
-
-                Bitmap TurretBitmap = null;
-
-                if (Name == "stnk")
-                {
-                    ShpReader SSAMShp = ShpReader.Load(General_File_String_From_Name("ssam"));
-
-                    TurretBitmap = RenderUtils.RenderShp(SSAMShp, Remap,
-                        Frame_From_Unit_Angle(u.Angle));
-                }
-                else if (Name == "mgg")
-                {
-                    // TODO implement turret, get the right frame for turret start too
-                    return;
-                }
-                else
-                {
-                    TurretBitmap = RenderUtils.RenderShp(UnitShp, Remap,
-                        Frame_From_Unit_Angle(u.Angle) + 32);
-                }
-
-                int TurretCenterX = (u.X * CellSize) + 12 - (TurretBitmap.Width / 2);
-                int TurretCenterY = (u.Y * CellSize) + 12 - (TurretBitmap.Height / 2);
-
-                g.DrawImage(TurretBitmap, TurretCenterX - AdjustX, TurretCenterY + AdjustY, TurretBitmap.Width, TurretBitmap.Height);
+                Draw_Turret(g, UnitBitmap, u.Name, u.X, u.Y, u.Angle, Remap);
             }
         }
 
@@ -433,50 +500,13 @@ namespace RAFullMapPreviewGenerator
                 case "stnk":
                 case "mgg":
                 case "mrj":
+                case "pt":
+                case "dd":
+                case "ca":
                     return true;
 
                 default: return false;
             }
-        }
-
-        void Get_Turret_Adjustment(string Name, int Angle, out int AdjustX, out int AdjustY)
-        {
-            int OffsetX = 0;
-            int OffsetY = 0;
-
-            switch (Name)
-            {
-                case "mlrs":
-                    OffsetY = 3;
-                    OffsetX = -1;
-                    break;
-                case "msam":
-                    OffsetY = 5;
-                    OffsetX = -1;
-                    break;
-                default: break;
-            }
-
-            AdjustX = Get_2D_Rotation_X(OffsetX, OffsetY, Angle);
-            AdjustY = Get_2D_Rotation_Y(OffsetX, OffsetY, Angle);
-        }
-
-        int Get_2D_Rotation_X(int OffsetX, int OffsetY, int Angle)
-        {
-            double RadAngle = (((double)Angle) * 1.40625) * (Math.PI / 180.0);
-
-            double Result = OffsetX * Math.Cos(RadAngle) + OffsetY * Math.Sin(RadAngle);
-            int Rounded = (int)Math.Round(Result, 0);
-            return Rounded;
-        }
-
-        int Get_2D_Rotation_Y(int OffsetX, int OffsetY, int Angle)
-        {
-            double RadAngle = (((double)Angle) * 1.40625) * (Math.PI / 180.0);
-
-            double Result = OffsetX * Math.Sin(RadAngle) + OffsetY * Math.Cos(RadAngle);
-            int Rounded = (int)Math.Round(Result, 0);
-            return Rounded;
         }
 
         void Draw_Base_Structures(Graphics g)
