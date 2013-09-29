@@ -927,7 +927,7 @@ namespace RAFullMapPreviewGenerator
 
             if (Cell.Template == 0 || Cell.Template == 255 || Cell.Template == 65535)
             {
-                Cell.Tile = MapRandom.Next(0, 15);
+                Cell.Tile = (X % 4) + ((Y % 4) * 4);
             }
             else
             {
