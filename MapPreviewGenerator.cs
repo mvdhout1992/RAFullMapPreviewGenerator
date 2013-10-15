@@ -109,6 +109,10 @@ namespace RAFullMapPreviewGenerator
                 }
             }
 
+            Draw_Bibs(g);
+            Draw_Base_Structures(g);
+            Draw_Structures(g);
+
             Draw_Units(g);
             Draw_Infantries(g);
             Draw_Ships(g);
@@ -132,9 +136,6 @@ namespace RAFullMapPreviewGenerator
             }
 
             Draw_Smudges(g);
-            Draw_Bibs(g);
-            Draw_Base_Structures(g);
-            Draw_Structures(g);
 
             Draw_Cell_Triggers(g);
             Draw_Waypoints(g);
@@ -775,7 +776,7 @@ namespace RAFullMapPreviewGenerator
             ShpReader StructShp = ShpReader.Load(FileName);
 
             int Frame = Frame_From_Building_HP(s);
-            if (s.Name == "gun" || s.Name == "agun") Frame += Frame_From_Unit_Angle(s.Angle);
+            if (s.Name == "gun" || s.Name == "agun" || s.Name == "sam") Frame += Frame_From_Unit_Angle(s.Angle);
 
             Bitmap StructBitmap = RenderUtils.RenderShp(StructShp,  Remap_For_House(s.Side, ColorScheme.Primary),
                 Frame);
@@ -1636,7 +1637,6 @@ namespace RAFullMapPreviewGenerator
 
         static void Load_Building_Bibs()
         {
-            BuildingBibs.Add("afld", new BuildingBibInfo("bib2", 1));
             BuildingBibs.Add("bio", new BuildingBibInfo("bib3", 1));
             BuildingBibs.Add("atek", new BuildingBibInfo("bib3", 1));
             BuildingBibs.Add("fcom", new BuildingBibInfo("bib3", 1));
